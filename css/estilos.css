@@ -152,8 +152,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--verde);outline-o
 /body {
   background: radial-gradient(
     circle at center,
-    #c8ebd3 0%,
-    #e8f5ee 45%,
-    #f6fbf7 100%
+    #5cb979 0%,
+    #469169 45%,
+    #4c9e5c 100%
   ) !important;
 }
