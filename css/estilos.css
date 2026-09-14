@@ -149,11 +149,259 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--verde);outline-o
 .tabla-reservas th{color:var(--gris);font-size:.78rem;text-transform:uppercase;letter-spacing:.03em}
 .tabla-reservas tbody tr:hover{background:var(--verde-claro)}
 
-/body {
-  background: radial-gradient(
-    circle at center,
-    #5cb979 0%,
-    #469169 45%,
-    #4c9e5c 100%
-  ) !important;
+.hero h1,
+.hero .lema,
+.hero .sub {
+  color: #ffffff !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* ===== Diseño partido 50/50 - Versión forzada ===== */
+
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#pantallaAuth {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 100vh !important;
+}
+
+.contenedor.auth,
+.auth {
+  display: flex !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 100vh !important;
+  height: 100vh !important;
+  gap: 0 !important;
+}
+
+/* Lado izquierdo - 50% */
+.hero {
+  width: 50% !important;
+  flex: 0 0 50% !important;
+  background: linear-gradient(160deg, #1f5c39 0%, #2e7d4f 55%, #4caf70 100%) !important;
+  color: white !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  padding: 3rem 4rem !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+
+.hero h1 {
+  color: #ffffff !important;
+  font-size: 2.5rem !important;
+  line-height: 1.2 !important;
+  margin: 0.5rem 0 !important;
+}
+
+.hero .lema {
+  color: rgba(255,255,255,0.95) !important;
+  font-weight: 600 !important;
+}
+
+.hero .sub {
+  color: rgba(255,255,255,0.88) !important;
+  max-width: 24rem !important;
+  line-height: 1.5 !important;
+}
+
+.escudo-grande {
+  background: rgba(255,255,255,0.18) !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Lado derecho - 50% */
+.tarjeta {
+  width: 50% !important;
+  flex: 0 0 50% !important;
+  background: #ffffff !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 2rem !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.tarjeta .tabs,
+.tarjeta form {
+  width: 100%;
+  max-width: 360px;
+}
+
+/* Móvil */
+@media (max-width: 900px) {
+  .contenedor.auth,
+  .auth {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+
+  .hero,
+  .tarjeta {
+    width: 100% !important;
+    flex: none !important;
+    min-height: auto !important;
+    padding: 2.5rem 1.5rem !important;
+  }
+
+  .hero {
+    align-items: center !important;
+    text-align: center !important;
+  }
+}
+
+/* ===== Diseño partido pantalla completa - FINAL ===== */
+
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100% !important;
+  min-height: 100vh !important;
+  overflow-x: hidden;
+}
+
+#pantallaAuth {
+  min-height: 100vh !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+}
+
+.contenedor.auth,
+.auth {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;   /* ← esto es lo más importante */
+  justify-content: stretch !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+/* Lado izquierdo */
+.hero {
+  flex: 1 1 50% !important;
+  width: 50% !important;
+  background: linear-gradient(160deg, #1f5c39 0%, #2e7d4f 55%, #4caf70 100%) !important;
+  color: white !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  padding: 3rem 4rem !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  min-height: 100vh !important;
+}
+
+.hero h1 {
+  color: #ffffff !important;
+  font-size: 2.5rem !important;
+  line-height: 1.2 !important;
+  margin: 0.5rem 0 !important;
+}
+
+.hero .lema {
+  color: rgba(255,255,255,0.95) !important;
+  font-weight: 600 !important;
+}
+
+.hero .sub {
+  color: rgba(255,255,255,0.88) !important;
+  max-width: 24rem !important;
+  line-height: 1.5 !important;
+}
+
+.escudo-grande {
+  background: rgba(255,255,255,0.18) !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Lado derecho */
+.tarjeta {
+  flex: 1 1 50% !important;
+  width: 50% !important;
+  background: #ffffff !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 2rem !important;
+  margin: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  box-sizing: border-box !important;
+  min-height: 100vh !important;
+}
+
+/* ===== Figuras geométricas (más cantidad) ===== */
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Figura 1 - grande arriba derecha */
+.hero::before {
+  content: "";
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  top: -90px;
+  right: -70px;
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 30%;
+  transform: rotate(25deg);
+  z-index: 0;
+}
+
+/* Figura 2 - mediana abajo izquierda */
+.hero::after {
+  content: "";
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  bottom: -60px;
+  left: -50px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 40%;
+  transform: rotate(-20deg);
+  z-index: 0;
+}
+
+/* Figuras extra usando box-shadow en el ::before */
+.hero::before {
+  box-shadow:
+    -180px 220px 0 -40px rgba(255, 255, 255, 0.07),   /* círculo medio */
+    120px 280px 0 -60px rgba(255, 255, 255, 0.06),    /* círculo pequeño */
+    -80px 380px 0 -30px rgba(255, 255, 255, 0.05);    /* otro más abajo */
+}
+
+/* Para que el texto y logo queden encima */
+.hero > * {
+  position: relative;
+  z-index: 1;
 }
