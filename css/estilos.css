@@ -148,3 +148,12 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--verde);outline-o
 .tabla-reservas th,.tabla-reservas td{text-align:left;padding:.6rem .75rem;border-bottom:1px solid var(--borde);font-size:.9rem}
 .tabla-reservas th{color:var(--gris);font-size:.78rem;text-transform:uppercase;letter-spacing:.03em}
 .tabla-reservas tbody tr:hover{background:var(--verde-claro)}
+
+/body {
+  background: radial-gradient(
+    circle at center,
+    #c8ebd3 0%,
+    #e8f5ee 45%,
+    #f6fbf7 100%
+  ) !important;
+}
