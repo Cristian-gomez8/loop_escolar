@@ -405,3 +405,21 @@ html, body {
   position: relative;
   z-index: 1;
 }
+
+/* ===== Forzar ocultar pantalla de login ===== */
+#pantallaAuth.oculto,
+#pantallaAuth.oculto .auth,
+#pantallaAuth.oculto .contenedor,
+#pantallaAuth.oculto .hero,
+#pantallaAuth.oculto .tarjeta {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
