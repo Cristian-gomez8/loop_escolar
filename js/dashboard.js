@@ -153,9 +153,7 @@ function dibujarBarras(contenedor, datos) {
 
 // Dibuja la gráfica de línea "donaciones en el tiempo" dentro de contenedor.
 // datos: [{ fecha, valor }], ya ordenados cronológicamente.
-// Nota de alcance: se etiqueta solo el primer y el último punto (regla de
-// "etiquetar el extremo, no cada punto"); el resto del detalle vive en el
-// tooltip nativo (<title>) de cada punto al pasar el mouse.
+// La línea sube o baja según el conteo diario.
 function dibujarLinea(contenedor, datos) {
   const alto = GRAF_ALTO - GRAF_MARGEN.arriba - GRAF_MARGEN.abajo;
   const ancho = GRAF_ANCHO - GRAF_MARGEN.izquierda - GRAF_MARGEN.derecha;
@@ -181,7 +179,15 @@ function dibujarLinea(contenedor, datos) {
     svg.append(etiquetaY);
   }
 
-  // Etiquetas simples para explicar qué representa cada eje.
+  // La línea sube o baja según la cantidad de donaciones de cada día.
+  const pasoX = datos.length > 1 ? ancho / (datos.length - 1) : 0;
+  const puntos = datos.map((d, i) => ({
+    x: GRAF_MARGEN.izquierda + (datos.length > 1 ? i * pasoX : ancho / 2),
+    y: GRAF_MARGEN.arriba + alto - (tope > 0 ? (d.valor / tope) * alto : 0),
+    dato: d
+  }));
+
+  // Etiquetas de los ejes para explicar la lectura de la tendencia.
   const tituloEjeY = crearSVGEl("text", {
     x: 12, y: GRAF_MARGEN.arriba + alto / 2,
     "font-size": 11, fill: COLOR_TEXTO_SUAVE,
@@ -192,53 +198,42 @@ function dibujarLinea(contenedor, datos) {
   svg.append(tituloEjeY);
 
   const tituloEjeX = crearSVGEl("text", {
-    x: GRAF_MARGEN.izquierda + ancho / 2,
-    y: GRAF_ALTO - 4, "font-size": 11, fill: COLOR_TEXTO_SUAVE,
-    "text-anchor": "middle"
+    x: GRAF_MARGEN.izquierda + ancho / 2, y: GRAF_ALTO - 4,
+    "font-size": 11, fill: COLOR_TEXTO_SUAVE, "text-anchor": "middle"
   });
   tituloEjeX.textContent = "Fecha";
   svg.append(tituloEjeX);
 
-  const pasoX = datos.length > 1 ? ancho / (datos.length - 1) : 0;
-  const puntos = datos.map((d, i) => ({
-    x: GRAF_MARGEN.izquierda + (datos.length > 1 ? i * pasoX : ancho / 2),
-    y: GRAF_MARGEN.arriba + alto - (tope > 0 ? (d.valor / tope) * alto : 0),
-    dato: d
-  }));
-
   if (puntos.length > 1) {
     const trazo = puntos.map((p, i) => (i === 0 ? "M" : "L") + `${p.x},${p.y}`).join(" ");
-    const area = `${trazo} L${puntos[puntos.length - 1].x},${GRAF_MARGEN.arriba + alto} L${puntos[0].x},${GRAF_MARGEN.arriba + alto} Z`;
     svg.append(crearSVGEl("path", {
-      d: area, fill: COLOR_MARCA, opacity: 0.1
-    }));
-    svg.append(crearSVGEl("path", {
-      d: trazo, fill: "none", stroke: COLOR_MARCA, "stroke-width": 2,
+      d: trazo, fill: "none", stroke: COLOR_MARCA, "stroke-width": 3,
       "stroke-linecap": "round", "stroke-linejoin": "round"
     }));
   }
 
   puntos.forEach((p, i) => {
     const circulo = crearSVGEl("circle", {
-      cx: p.x, cy: p.y, r: 5, fill: COLOR_MARCA,
+      cx: p.x, cy: p.y, r: 6, fill: COLOR_MARCA,
       stroke: COLOR_SUPERFICIE, "stroke-width": 2, class: "punto-svg"
     });
     const titulo = crearSVGEl("title", {});
-    titulo.textContent = `${formatFechaCorta(p.dato.fecha)}: ${p.dato.valor}`;
+    titulo.textContent = `${formatFechaCorta(p.dato.fecha)}: ${p.dato.valor} donaciones`;
     circulo.append(titulo);
     svg.append(circulo);
 
     const mostrarEtiqueta = puntos.length <= 10 || i === 0 || i === puntos.length - 1;
     if (mostrarEtiqueta) {
       const valorTxt = crearSVGEl("text", {
-        x: p.x, y: p.y - 10, "text-anchor": "middle",
+        x: p.x, y: p.y - 11, "text-anchor": "middle",
         "font-size": 12, "font-weight": 700, fill: COLOR_MARCA
       });
       valorTxt.textContent = p.dato.valor;
       svg.append(valorTxt);
 
       const fechaTxt = crearSVGEl("text", {
-        x: p.x, y: GRAF_MARGEN.arriba + alto + 18, "text-anchor": i === 0 ? "start" : "end",
+        x: p.x, y: GRAF_MARGEN.arriba + alto + 18,
+        "text-anchor": i === 0 ? "start" : i === puntos.length - 1 ? "end" : "middle",
         "font-size": 11, fill: COLOR_TEXTO_SUAVE
       });
       fechaTxt.textContent = formatFechaCorta(p.dato.fecha);
