@@ -7,7 +7,7 @@
 const TIPOS = ["Camibuso", "Camisa", "Sudadera", "Pantalón", "Falda", "Chaqueta", "Zapatos"];
 
 // Tallas disponibles para donar/filtrar en el catálogo.
-const TALLAS = ["talla indefinida","6", "8", "10", "12", "14", "16", "S", "M", "L", "36", "38", "40","42"];
+const TALLAS = ["talla indefinida","6", "8", "10", "12", "14", "16", "S", "M", "L", "XL","36", "38", "40","42"];
 
 // Roles posibles de un usuario:
 //  - "usuario": puede donar prendas y reservarlas (rol por defecto al registrarse).

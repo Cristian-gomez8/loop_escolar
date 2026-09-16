@@ -25,7 +25,7 @@ document.querySelectorAll("nav button[data-vista]").forEach(b => {
     $("#vistaUsuarios").classList.toggle("oculto", v !== "usuarios");
     if (v === "catalogo")  await pintarCatalogo();
     if (v === "reservas")  await pintarReservas();
-    if (v === "almacen")   { await pintarPendientes(); await pintarReservasAlmacen(); }
+    if (v === "almacen")   await pintarPendientes();
     if (v === "dashboard") await pintarDashboard();
     if (v === "usuarios")  await pintarUsuarios();
   };

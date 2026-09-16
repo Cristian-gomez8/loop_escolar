@@ -21,30 +21,40 @@ async function pintarPendientes() {
     .order("creada", { ascending: true });
   if (error) { console.error(error); return; }
 
-  const ul = $("#listaPendientes");
-  ul.innerHTML = "";
+  const tabla = $("#tablaPendientes");
+  const cuerpo = tabla.querySelector("tbody");
+  cuerpo.innerHTML = "";
   $("#vacioPendientes").textContent = data.length ? "" : "No hay donaciones pendientes por revisar.";
+  tabla.classList.toggle("oculto", !data.length);
 
   data.forEach(p => {
-    const li = document.createElement("li");
-    li.className = "reserva";
-    li.innerHTML = `
-      ${p.imagen_url ? '<img class="miniatura-chica" alt="Foto de la prenda">' : ""}
-      <div class="mr">
-        <h2 style="margin:0;font-size:1.05rem"></h2>
-        <p class="nota" style="margin:.15rem 0 0"></p>
-        <p class="nota" style="margin:.15rem 0 0"></p>
-      </div>
-      <button class="btn-sec">Aceptar</button>
-      <button class="btn-peligro">Rechazar</button>`;
-    if (p.imagen_url) li.querySelector(".miniatura-chica").src = p.imagen_url;
-    li.querySelector("h2").textContent = `${p.tipo} · Talla ${p.talla}`;
-    const notas = li.querySelectorAll(".nota");
-    notas[0].textContent = p.defectos ? "Defectos: " + p.defectos : "Sin defectos reportados";
-    notas[1].textContent = "Donado por: " + (p.donante ? `${p.donante.nombre} (${p.donante.email})` : "usuario eliminado");
-    li.querySelector(".btn-sec").onclick = () => aceptarPrenda(p);
-    li.querySelector(".btn-peligro").onclick = () => rechazarPrenda(p);
-    ul.append(li);
+    const fila = document.createElement("tr");
+    fila.innerHTML = "<td></td><td></td><td></td><td></td><td></td><td></td>";
+    const [cTipo, cTalla, cDescripcion, cFoto, cDonante, cAcciones] = fila.querySelectorAll("td");
+    cTipo.textContent = p.tipo;
+    cTalla.textContent = p.talla;
+    cDescripcion.textContent = p.defectos || "Sin defectos reportados";
+    cDonante.textContent = p.donante ? `${p.donante.nombre} (${p.donante.email})` : "Usuario eliminado";
+    if (p.imagen_url) {
+      const imagen = document.createElement("img");
+      imagen.className = "miniatura-tabla";
+      imagen.alt = "Foto de la prenda";
+      imagen.src = p.imagen_url;
+      cFoto.append(imagen);
+    } else {
+      cFoto.textContent = "Sin foto";
+    }
+
+    const botonAceptar = document.createElement("button");
+    botonAceptar.className = "btn-sec";
+    botonAceptar.textContent = "Aceptar";
+    botonAceptar.onclick = () => aceptarPrenda(p);
+    const botonRechazar = document.createElement("button");
+    botonRechazar.className = "btn-peligro";
+    botonRechazar.textContent = "Rechazar";
+    botonRechazar.onclick = () => rechazarPrenda(p);
+    cAcciones.append(botonAceptar, botonRechazar);
+    cuerpo.append(fila);
   });
 }
 
@@ -64,19 +74,5 @@ async function rechazarPrenda(p) {
   pintarPendientes();
 }
 
-// Renderiza TODAS las reservas (sin filtros: esta vista no los tiene),
-// más recientes primero, reutilizando construirFilaReserva de dashboard.js.
-async function pintarReservasAlmacen() {
-  const { data, error } = await supabaseClient
-    .from("reservas")
-    .select("*, usuario:usuarios(nombre), prenda:prendas(tipo,talla,defectos,estado)")
-    .order("creada", { ascending: false });
-  if (error) { console.error(error); return; }
+// Fin de la gestión de donaciones pendientes.
 
-  const cuerpo = $("#tablaReservasAlmacen tbody");
-  cuerpo.innerHTML = "";
-  $("#vacioTablaReservasAlmacen").textContent = data.length ? "" : "Todavía no se ha reservado ninguna prenda.";
-  $("#tablaReservasAlmacen").classList.toggle("oculto", !data.length);
-
-  data.forEach(r => cuerpo.append(construirFilaReserva(r, pintarReservasAlmacen)));
-}

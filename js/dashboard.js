@@ -10,7 +10,8 @@
    ========================================================= */
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-const GRAF_ANCHO = 640, GRAF_ALTO = 260;
+// Tamaño base de las gráficas; CSS las adapta al ancho disponible.
+const GRAF_ANCHO = 900, GRAF_ALTO = 360;
 const GRAF_MARGEN = { arriba: 28, derecha: 20, abajo: 40, izquierda: 34 };
 
 // Colores tomados de las variables CSS ya definidas en estilos.css,

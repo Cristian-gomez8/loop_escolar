@@ -443,6 +443,25 @@ input:focus, select:focus, textarea:focus {
   flex-shrink: 0;
 }
 
+/* El catálogo autorizado se muestra como una galería de fotografías. */
+.catalogo-foto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.catalogo-foto .miniatura {
+  height: 220px;
+  margin-bottom: 0;
+}
+.sin-foto {
+  height: 220px;
+  display: grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  color: var(--gris);
+  background: var(--verde-claro);
+}
+
 /* ---------- Reservas / Donaciones / Usuarios ---------- */
 .lista {
   /* Lista vertical reutilizada para reservas, donaciones y usuarios. */
@@ -498,6 +517,71 @@ input:focus, select:focus, textarea:focus {
 }
 .reserva select { width: auto; margin: 0; }
 
+/* ---------- Tablas de prendas ---------- */
+/* Contenedor desplazable para conservar todas las columnas en móvil. */
+.tabla-contenedor {
+  width: 100%;
+  margin-top: 1.25rem;
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 0.75rem;
+  box-shadow: var(--sombra);
+}
+.tabla-prendas {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+.tabla-prendas th,
+.tabla-prendas td {
+  padding: 0.75rem;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--borde);
+}
+.tabla-prendas th {
+  color: var(--gris);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: var(--verde-claro);
+}
+.tabla-prendas tbody tr:last-child td { border-bottom: 0; }
+.tabla-prendas tbody tr:hover { background: #f8fcf9; }
+.tabla-prendas td:nth-child(3) { min-width: 220px; }
+.tabla-prendas td:last-child {
+  white-space: nowrap;
+}
+.tabla-prendas td:last-child button {
+  width: auto;
+  margin: 0 0.25rem 0.25rem 0;
+}
+.miniatura-tabla {
+  width: 72px;
+  height: 56px;
+  object-fit: cover;
+  display: block;
+  border-radius: 0.45rem;
+  background: var(--verde-claro);
+}
+
+/* ---------- Separación visual del Dashboard ---------- */
+.dashboard-bloque {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--borde);
+}
+.dashboard-titulo {
+  margin: 0;
+  color: var(--verde-osc);
+  font-size: 1.2rem;
+}
+
+/* Más espacio vertical para revisar registros sin modificar el ancho. */
+#vistaAlmacen .tabla-donaciones {
+  min-height: 420px;
+}
 /* ---------- Formularios de administración más anchos ---------- */
 /* Centra y amplía formularios de donaciones, usuarios y prendas. */
 .form-estrecho,
@@ -583,7 +667,7 @@ main:not(#pantallaAuth) .tarjeta {
 
 /* Alinea los formularios administrativos con el inicio del contenido. */
 .form-estrecho {
-  max-width: 640px !important;
+  max-width: 900px !important;
   width: 100% !important;
   margin-left: 0 !important;
   margin-right: auto !important;
@@ -594,7 +678,7 @@ main:not(#pantallaAuth) .tarjeta {
 #app .tarjeta,
 #app form,
 main:not(#pantallaAuth) .tarjeta {
-  max-width: 640px !important;
+  max-width: 900px !important;
   width: 100% !important;
   margin-left: 0 !important;
   margin-right: auto !important;
@@ -607,4 +691,46 @@ main:not(#pantallaAuth) .tarjeta {
   max-width: 1100px !important;
   margin-left: auto !important;
   margin-right: auto !important;
+}
+
+/* Donaciones y usuarios son formularios compactos; no ocupan el ancho del Dashboard. */
+#vistaDonacion,
+#vistaUsuarios {
+  max-width: 640px !important;
+}
+#vistaDonacion > .tarjeta,
+#vistaUsuarios > .tarjeta {
+  max-width: 520px !important;
+  padding: 2rem 2.2rem !important;
+}
+#vistaDonacion #formDonacion label,
+#vistaUsuarios #formUsuarioNuevo label {
+  font-size: 0.95rem;
+}
+#vistaDonacion #formDonacion input,
+#vistaDonacion #formDonacion select,
+#vistaDonacion #formDonacion textarea,
+#vistaUsuarios #formUsuarioNuevo input,
+#vistaUsuarios #formUsuarioNuevo select,
+#vistaUsuarios #formUsuarioNuevo textarea {
+  padding: 0.7rem 0.85rem;
+  font-size: 1rem;
+}
+#vistaDonacion #formDonacion .btn,
+#vistaUsuarios #formUsuarioNuevo .btn {
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+}
+
+/* Solo las gráficas aprovechan el ancho grande del Dashboard. */
+#vistaDashboard .dashboard-graficas .tarjeta-grafica {
+  max-width: 1100px !important;
+  width: 100% !important;
+  padding: 2rem 2.5rem !important;
+}
+#vistaDashboard .dashboard-reservas .tarjeta-grafica {
+  max-width: 760px !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  padding: 1.5rem !important;
 }
