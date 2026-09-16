@@ -3,6 +3,7 @@
    ========================================================= */
 
 :root {
+  /* Colores y sombra reutilizados en toda la aplicación. */
   --verde: #2e7d4f;
   --verde-osc: #1f5c39;
   --verde-claro: #e8f5ee;
@@ -14,8 +15,10 @@
   --sombra: 0 12px 30px -14px rgba(31, 92, 57, 0.45);
 }
 
+/* Hace que el ancho incluya padding y borde, evitando desbordamientos. */
 * { box-sizing: border-box; }
 
+/* Estilos base de la página: elimina el margen y define la tipografía. */
 body {
   margin: 0;
   background: var(--fondo);
@@ -23,19 +26,26 @@ body {
   font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
+/* Clase que oculta elementos desde JavaScript. */
 .oculto { display: none !important; }
+/* Los enlaces heredan el color del texto que los contiene. */
 a { color: inherit; }
+/* Título principal de cada vista. */
 h1 { font-size: 1.9rem; margin: 0; color: var(--verde); }
+/* Texto secundario, como descripciones o subtítulos. */
 .sub { color: var(--gris); margin: 0.25rem 0 0; }
+/* Centra el contenido y limita su ancho para facilitar la lectura. */
 .contenedor { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 
 /* ---------- Cabecera y navegación ---------- */
 header {
+  /* Degradado y sombra para separar la cabecera del contenido. */
   background: linear-gradient(135deg, var(--verde-osc), #4aa06a);
   color: #fff;
   box-shadow: var(--sombra);
 }
 .barra {
+  /* Organiza logo, marca y navegación en una fila flexible. */
   max-width: 1100px;
   margin: 0 auto;
   display: flex;
@@ -45,6 +55,7 @@ header {
   padding: 1rem 1.5rem;
 }
 .escudo {
+  /* Cuadro del logotipo o escudo. */
   height: 48px;
   width: 48px;
   border-radius: 0.5rem;
@@ -54,11 +65,14 @@ header {
   font-weight: 800;
   color: var(--verde-osc);
 }
+/* Empuja la navegación hacia la derecha ocupando el espacio disponible. */
 .marca { margin-right: auto; }
 .marca b { display: block; font-size: 1.2rem; }
 .marca span { font-size: 0.85rem; opacity: 0.9; }
+/* Permite que los botones salten de línea en pantallas pequeñas. */
 nav { display: flex; flex-wrap: wrap; gap: 0.25rem; }
 nav button {
+  /* Botón visualmente integrado en la cabecera. */
   background: transparent;
   border: 0;
   color: #fff;
@@ -68,9 +82,13 @@ nav button {
   border-radius: 0.5rem;
   cursor: pointer;
 }
+/* Realce al pasar el cursor por un botón. */
 nav button:hover { background: rgba(255, 255, 255, 0.18); }
+/* Marca la sección actualmente seleccionada. */
 nav button.activo { background: #fff; color: var(--verde-osc); }
+/* Estilo especial del botón para cerrar sesión. */
 #btnSalir { border: 1px solid currentColor; margin-left: 0.5rem; }
+/* Evita que el nombre del usuario se parta en varias líneas. */
 .usuario-actual {
   font-weight: 600;
   opacity: 0.95;
@@ -80,11 +98,13 @@ nav button.activo { background: #fff; color: var(--verde-osc); }
 
 /* ---------- Pantalla de ingreso / registro (diseño partido) ---------- */
 html, body {
+  /* Permite que la pantalla de autenticación ocupe todo el alto disponible. */
   height: 100%;
   min-height: 100vh;
 }
 
 #pantallaAuth {
+  /* El contenedor del login funciona como una pantalla completa. */
   min-height: 100vh;
   height: 100vh;
   margin: 0;
@@ -93,6 +113,7 @@ html, body {
 
 .contenedor.auth,
 .auth {
+  /* Divide la autenticación en dos columnas: presentación y formulario. */
   display: flex !important;
   flex-direction: row !important;
   align-items: stretch !important;
@@ -107,6 +128,7 @@ html, body {
 
 /* Lado izquierdo */
 .hero {
+  /* Panel izquierdo con la identidad visual de Loop Escolar. */
   flex: 1 1 50% !important;
   width: 50% !important;
   background: linear-gradient(160deg, #1f5c39 0%, #2e7d4f 55%, #4caf70 100%) !important;
@@ -124,6 +146,7 @@ html, body {
 }
 
 .hero h1 {
+  /* Título claro y legible sobre el fondo verde. */
   color: #ffffff !important;
   font-size: 2.5rem !important;
   line-height: 1.2 !important;
@@ -145,6 +168,7 @@ html, body {
 }
 
 .escudo-grande {
+  /* Versión grande del escudo mostrado en el panel de bienvenida. */
   background: rgba(255, 255, 255, 0.18) !important;
   margin-bottom: 1.5rem !important;
   height: 110px;
@@ -156,6 +180,7 @@ html, body {
 
 /* Figuras geométricas decorativas */
 .hero::before {
+  /* Forma decorativa posicionada detrás del contenido del panel. */
   content: "";
   position: absolute;
   width: 300px;
@@ -173,6 +198,7 @@ html, body {
 }
 
 .hero::after {
+  /* Segunda forma decorativa para dar profundidad al fondo. */
   content: "";
   position: absolute;
   width: 200px;
@@ -186,12 +212,14 @@ html, body {
 }
 
 .hero > * {
+  /* Mantiene textos y controles por encima de las figuras decorativas. */
   position: relative;
   z-index: 1;
 }
 
 /* Lado derecho (formulario login) */
 .tarjeta {
+  /* Panel derecho que contiene el login o registro. */
   flex: 1 1 50% !important;
   width: 50% !important;
   background: #ffffff !important;
@@ -210,11 +238,13 @@ html, body {
 
 .tarjeta .tabs,
 .tarjeta form {
+  /* Limita el ancho del contenido para facilitar la lectura. */
   width: 100%;
   max-width: 360px;
 }
 
 .tabs {
+  /* Contenedor de las pestañas Login/Registro. */
   display: flex;
   background: var(--verde-claro);
   border-radius: 0.75rem;
@@ -222,6 +252,7 @@ html, body {
   margin-bottom: 1.25rem;
 }
 .tabs button {
+  /* Cada pestaña ocupa la misma proporción del contenedor. */
   flex: 1;
   border: 0;
   background: transparent;
@@ -233,17 +264,20 @@ html, body {
   cursor: pointer;
 }
 .tabs button.activo {
+  /* Pestaña seleccionada. */
   background: var(--verde);
   color: #fff;
 }
 
 label {
+  /* Etiquetas de los campos del formulario. */
   font-size: 0.88rem;
   font-weight: 600;
   display: block;
   margin-top: 0.85rem;
 }
 input, select, textarea {
+  /* Apariencia común para campos de texto, listas y áreas de texto. */
   width: 100%;
   margin-top: 0.25rem;
   padding: 0.55rem 0.7rem;
@@ -253,10 +287,12 @@ input, select, textarea {
   background: #fff;
 }
 input:focus, select:focus, textarea:focus {
+  /* Indicador visible cuando el usuario está usando un campo. */
   outline: 2px solid var(--verde);
   outline-offset: 1px;
 }
 .btn {
+  /* Botón principal de acción, por ejemplo Ingresar o Guardar. */
   width: 100%;
   margin-top: 1.1rem;
   padding: 0.7rem 1rem;
@@ -269,12 +305,15 @@ input:focus, select:focus, textarea:focus {
   cursor: pointer;
   box-shadow: var(--sombra);
 }
+/* Señala que una acción está temporalmente deshabilitada. */
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+/* Mensajes para errores y operaciones exitosas. */
 .error { color: #c0392b; font-size: 0.88rem; margin: 0.6rem 0 0; }
 .ok { color: var(--verde-osc); font-size: 0.88rem; font-weight: 600; margin: 0.6rem 0 0; }
 
 /* Toggle contraseña */
 .input-con-toggle {
+  /* Permite colocar el botón del ojo dentro del campo de contraseña. */
   position: relative;
   display: flex;
   align-items: center;
@@ -285,6 +324,7 @@ input:focus, select:focus, textarea:focus {
   padding-right: 2.8rem;
 }
 .btn-toggle-password {
+  /* Botón que alterna entre mostrar y ocultar la contraseña. */
   position: absolute;
   right: 0.6rem;
   top: 50%;
@@ -300,8 +340,10 @@ input:focus, select:focus, textarea:focus {
   align-items: center;
   justify-content: center;
 }
+/* Hace visible el botón del ojo al pasar el cursor. */
 .btn-toggle-password:hover { opacity: 1; }
 .btn-toggle-password .icono-ojo {
+  /* Los iconos se muestran alternativamente según el estado del botón. */
   display: none;
   pointer-events: none;
 }
@@ -324,6 +366,7 @@ input:focus, select:focus, textarea:focus {
 
 /* Responsive del login */
 @media (max-width: 900px) {
+  /* En tablet y móvil, las dos columnas pasan a mostrarse una debajo de otra. */
   .contenedor.auth,
   .auth {
     flex-direction: column !important;
@@ -343,9 +386,11 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* ---------- Catálogo ---------- */
+/* Controles para filtrar el catálogo; pueden ocupar varias líneas. */
 .filtros { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
 .filtros select { width: auto; min-width: 190px; margin: 0; }
 .grid {
+  /* Rejilla adaptable: crea tantas columnas como permita el ancho disponible. */
   list-style: none;
   padding: 0;
   margin: 1.25rem 0 0;
@@ -354,15 +399,18 @@ input:focus, select:focus, textarea:focus {
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 }
 .prenda {
+  /* Tarjeta individual de una prenda del catálogo. */
   background: #fff;
   border: 1px solid var(--borde);
   border-radius: 1rem;
   padding: 1.15rem;
   box-shadow: var(--sombra);
 }
+/* Ajusta el título dentro de la tarjeta de prenda. */
 .prenda h2 { margin: 0; font-size: 1.05rem; }
 .fila { display: flex; justify-content: space-between; gap: 0.75rem; align-items: flex-start; }
 .chip {
+  /* Etiqueta pequeña para estados o categorías. */
   font-size: 0.72rem;
   font-weight: 700;
   padding: 0.25rem 0.65rem;
@@ -371,10 +419,13 @@ input:focus, select:focus, textarea:focus {
   color: var(--verde-osc);
   text-transform: capitalize;
 }
+/* Variantes de color de las etiquetas según el estado. */
 .chip.gris { background: #eceff0; color: var(--gris); }
 .chip.rojo { background: #fdecea; color: #c0392b; }
+/* Texto auxiliar dentro de tarjetas y listas. */
 .nota { color: var(--gris); font-size: 0.88rem; margin: 0.7rem 0 0; }
 .miniatura {
+  /* Imagen principal de una prenda; object-fit evita deformarla. */
   width: 100%;
   height: 140px;
   object-fit: cover;
@@ -384,6 +435,7 @@ input:focus, select:focus, textarea:focus {
   display: block;
 }
 .miniatura-chica {
+  /* Imagen pequeña usada en filas o resúmenes. */
   width: 64px;
   height: 64px;
   object-fit: cover;
@@ -393,6 +445,7 @@ input:focus, select:focus, textarea:focus {
 
 /* ---------- Reservas / Donaciones / Usuarios ---------- */
 .lista {
+  /* Lista vertical reutilizada para reservas, donaciones y usuarios. */
   list-style: none;
   padding: 0;
   margin: 1.25rem 0 0;
@@ -400,6 +453,7 @@ input:focus, select:focus, textarea:focus {
   gap: 0.75rem;
 }
 .reserva {
+  /* Fila o tarjeta de una reserva. */
   background: #fff;
   border: 1px solid var(--borde);
   border-radius: 1rem;
@@ -410,6 +464,7 @@ input:focus, select:focus, textarea:focus {
   align-items: center;
   box-shadow: var(--sombra);
 }
+/* Empuja la información de entrega y las acciones al extremo derecho. */
 .reserva .mr { margin-right: auto; }
 .entrega { text-align: right; }
 .entrega small {
@@ -420,6 +475,7 @@ input:focus, select:focus, textarea:focus {
 }
 .entrega b { display: block; color: var(--verde-osc); }
 .btn-sec {
+  /* Acción secundaria, con menos énfasis que .btn. */
   border: 1px solid var(--borde);
   background: #fff;
   color: var(--gris);
@@ -430,6 +486,7 @@ input:focus, select:focus, textarea:focus {
   cursor: pointer;
 }
 .btn-peligro {
+  /* Acción destructiva, como eliminar o cancelar. */
   border: 1px solid #c0392b;
   background: #fff;
   color: #c0392b;
@@ -442,6 +499,7 @@ input:focus, select:focus, textarea:focus {
 .reserva select { width: auto; margin: 0; }
 
 /* ---------- Formularios de administración más anchos ---------- */
+/* Centra y amplía formularios de donaciones, usuarios y prendas. */
 .form-estrecho,
 .tarjeta form,
 #seccionDonacion .tarjeta,
@@ -467,13 +525,16 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* ---------- Dashboard ---------- */
+/* Permite desplazar horizontalmente gráficos que no caben en pantallas pequeñas. */
 .tarjeta-grafica { overflow-x: auto; }
 .tarjeta-grafica svg { display: block; width: 100%; height: auto; }
+/* Elementos interactivos del gráfico SVG. */
 .barra-svg { cursor: pointer; transition: opacity 0.15s; }
 .barra-svg:hover { opacity: 0.8; }
 .punto-svg { cursor: pointer; transition: r 0.15s; }
 .punto-svg:hover { r: 7; }
 
+/* Tabla de reservas sin espacios dobles entre celdas. */
 .tabla-reservas { width: 100%; border-collapse: collapse; }
 .tabla-reservas th,
 .tabla-reservas td {
@@ -492,6 +553,7 @@ input:focus, select:focus, textarea:focus {
 
 /* ===== Forzar formularios más anchos (Donación, Usuarios, Nueva prenda) ===== */
 
+/* Segundo ajuste de ancho para formularios creados dentro de la aplicación. */
 .form-estrecho {
   max-width: 580px !important;
   width: 100% !important;
@@ -500,6 +562,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Cualquier tarjeta que contenga un formulario (excepto el login) */
+/* Estas reglas tienen prioridad para no afectar la tarjeta dividida del login. */
 #app .tarjeta,
 #app form,
 main:not(#pantallaAuth) .tarjeta {
@@ -511,12 +574,14 @@ main:not(#pantallaAuth) .tarjeta {
 }
 
 /* El contenedor general un poco más amplio */
+/* Deja espacio lateral suficiente para los formularios y sus controles. */
 #app .contenedor {
   max-width: 900px !important;
 }
 
 /* ===== Formularios más grandes y alineados a la izquierda ===== */
 
+/* Alinea los formularios administrativos con el inicio del contenido. */
 .form-estrecho {
   max-width: 640px !important;
   width: 100% !important;
@@ -525,6 +590,7 @@ main:not(#pantallaAuth) .tarjeta {
 }
 
 /* Tarjetas de formularios dentro de la app (no el login) */
+/* Tamaño final de las tarjetas administrativas; el login conserva su diseño propio. */
 #app .tarjeta,
 #app form,
 main:not(#pantallaAuth) .tarjeta {
@@ -536,6 +602,7 @@ main:not(#pantallaAuth) .tarjeta {
 }
 
 /* Contenedor general */
+/* Centra el área general de la aplicación sin limitar demasiado su ancho. */
 #app .contenedor {
   max-width: 1100px !important;
   margin-left: auto !important;
