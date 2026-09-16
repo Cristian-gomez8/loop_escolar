@@ -10,7 +10,7 @@
   --blanco: #ffffff;
   --fondo: #f6fbf7;
   --texto: #1c2b22;
-  --gris: #6b7d72;
+  --gris: #4f6357;
   --borde: #d8e8de;
   --sombra: 0 12px 30px -14px rgba(31, 92, 57, 0.45);
 }
@@ -43,6 +43,40 @@ header {
   background: linear-gradient(135deg, var(--verde-osc), #4aa06a);
   color: #fff;
   box-shadow: var(--sombra);
+  position: relative;
+  overflow: hidden;
+}
+/* Figuras decorativas iguales a las de la pantalla de inicio. */
+header::before,
+header::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+header::before {
+  width: 220px;
+  height: 220px;
+  top: -110px;
+  right: 8%;
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 30%;
+  transform: rotate(25deg);
+  box-shadow:
+    -140px 150px 0 -35px rgba(255, 255, 255, 0.07),
+    100px 190px 0 -55px rgba(255, 255, 255, 0.06);
+}
+header::after {
+  width: 150px;
+  height: 150px;
+  bottom: -100px;
+  left: 8%;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 40%;
+  transform: rotate(-20deg);
+}
+.barra {
+  position: relative;
+  z-index: 1;
 }
 .barra {
   /* Organiza logo, marca y navegación en una fila flexible. */
@@ -726,11 +760,27 @@ main:not(#pantallaAuth) .tarjeta {
 #vistaDashboard .dashboard-graficas .tarjeta-grafica {
   max-width: 1100px !important;
   width: 100% !important;
-  padding: 2rem 2.5rem !important;
+  padding: 1.25rem 1.75rem !important;
+}
+#vistaDashboard > .filtros {
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+#vistaDashboard > .filtros select {
+  padding: 0.45rem 0.65rem;
+}
+#vistaDashboard .dashboard-graficas .tarjeta-grafica svg {
+  min-height: 420px;
 }
 #vistaDashboard .dashboard-reservas .tarjeta-grafica {
   max-width: 760px !important;
   width: 100% !important;
   margin-left: 0 !important;
   padding: 1.5rem !important;
+}
+
+@media (max-width: 900px) {
+  #vistaDashboard .dashboard-graficas .tarjeta-grafica svg {
+    min-height: 300px;
+  }
 }

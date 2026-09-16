@@ -17,6 +17,13 @@ let imagenDonacion = null;
 $("#dImagen").addEventListener("change", async (e) => {
   const archivo = e.target.files[0];
   if (!archivo) { imagenDonacion = null; $("#dImagenPreview").classList.add("oculto"); return; }
+  if (!archivo.type.startsWith("image/")) {
+    imagenDonacion = null;
+    $("#dImagen").value = "";
+    $("#donacionError").textContent = "Selecciona un archivo de imagen válido (JPG, PNG, GIF, WEBP u otro formato de imagen).";
+    $("#donacionError").classList.remove("oculto");
+    return;
+  }
   try {
     imagenDonacion = await comprimirImagen(archivo);
     $("#dImagenPreview").src = URL.createObjectURL(imagenDonacion);

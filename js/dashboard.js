@@ -11,7 +11,7 @@
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 // Tamaño base de las gráficas; CSS las adapta al ancho disponible.
-const GRAF_ANCHO = 900, GRAF_ALTO = 360;
+const GRAF_ANCHO = 1000, GRAF_ALTO = 420;
 const GRAF_MARGEN = { arriba: 28, derecha: 20, abajo: 40, izquierda: 34 };
 
 // Colores tomados de las variables CSS ya definidas en estilos.css,
@@ -181,6 +181,24 @@ function dibujarLinea(contenedor, datos) {
     svg.append(etiquetaY);
   }
 
+  // Etiquetas simples para explicar qué representa cada eje.
+  const tituloEjeY = crearSVGEl("text", {
+    x: 12, y: GRAF_MARGEN.arriba + alto / 2,
+    "font-size": 11, fill: COLOR_TEXTO_SUAVE,
+    transform: `rotate(-90 12 ${GRAF_MARGEN.arriba + alto / 2})`,
+    "text-anchor": "middle"
+  });
+  tituloEjeY.textContent = "Donaciones";
+  svg.append(tituloEjeY);
+
+  const tituloEjeX = crearSVGEl("text", {
+    x: GRAF_MARGEN.izquierda + ancho / 2,
+    y: GRAF_ALTO - 4, "font-size": 11, fill: COLOR_TEXTO_SUAVE,
+    "text-anchor": "middle"
+  });
+  tituloEjeX.textContent = "Fecha";
+  svg.append(tituloEjeX);
+
   const pasoX = datos.length > 1 ? ancho / (datos.length - 1) : 0;
   const puntos = datos.map((d, i) => ({
     x: GRAF_MARGEN.izquierda + (datos.length > 1 ? i * pasoX : ancho / 2),
@@ -190,6 +208,10 @@ function dibujarLinea(contenedor, datos) {
 
   if (puntos.length > 1) {
     const trazo = puntos.map((p, i) => (i === 0 ? "M" : "L") + `${p.x},${p.y}`).join(" ");
+    const area = `${trazo} L${puntos[puntos.length - 1].x},${GRAF_MARGEN.arriba + alto} L${puntos[0].x},${GRAF_MARGEN.arriba + alto} Z`;
+    svg.append(crearSVGEl("path", {
+      d: area, fill: COLOR_MARCA, opacity: 0.1
+    }));
     svg.append(crearSVGEl("path", {
       d: trazo, fill: "none", stroke: COLOR_MARCA, "stroke-width": 2,
       "stroke-linecap": "round", "stroke-linejoin": "round"
@@ -206,7 +228,8 @@ function dibujarLinea(contenedor, datos) {
     circulo.append(titulo);
     svg.append(circulo);
 
-    if (i === 0 || i === puntos.length - 1) {
+    const mostrarEtiqueta = puntos.length <= 10 || i === 0 || i === puntos.length - 1;
+    if (mostrarEtiqueta) {
       const valorTxt = crearSVGEl("text", {
         x: p.x, y: p.y - 10, "text-anchor": "middle",
         "font-size": 12, "font-weight": 700, fill: COLOR_MARCA
