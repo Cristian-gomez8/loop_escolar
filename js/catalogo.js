@@ -43,7 +43,11 @@ async function pintarCatalogo() {
     li.className = "prenda catalogo-foto";
     const disponible = p.estado === "disponible";
     li.innerHTML = `${p.imagen_url ? '<img class="miniatura" alt="Foto de prenda autorizada">' : '<div class="sin-foto">Sin foto</div>'}
+      <h2 class="titulo-prenda"></h2>
+      <p class="descripcion-prenda"></p>
       <button class="btn" ${disponible ? "" : "disabled"}>${disponible ? "Reservar" : "No disponible"}</button>`;
+    li.querySelector(".titulo-prenda").textContent = `${p.tipo} · Talla ${p.talla}`;
+    li.querySelector(".descripcion-prenda").textContent = p.defectos || "Sin descripción";
     if (p.imagen_url) {
       li.querySelector(".miniatura").src = p.imagen_url;
     }
