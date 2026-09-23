@@ -41,11 +41,12 @@ function contarAdmins() {
   return usuarios.filter(u => u.rol === "admin").length;
 }
 
-// Trae la tabla usuarios completa (RLS ya garantiza que solo un
-// admin/almacén puede ver todas las filas) y repinta la lista.
+// Trae las cuentas reales de Authentication junto con sus perfiles.
+// La RPC también incluye cuentas cuyo perfil público aún no exista.
 async function pintarUsuarios() {
-  const { data, error } = await supabaseClient.from("usuarios").select("*");
+  const { data, error } = await supabaseClient.rpc("listar_usuarios_admin");
   if (error) {
+    console.error(error);
     $("#vacioUsuarios").textContent = "No se pudo cargar la lista de usuarios.";
     return;
   }

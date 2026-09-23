@@ -58,11 +58,25 @@ function formatFechaCorta(fecha) {
   return new Date(fecha + "T00:00:00").toLocaleDateString("es-CO", { day: "2-digit", month: "short" });
 }
 
+// Convierte el timestamp de Supabase al día calendario de Colombia.
+// toISOString() usa UTC y puede mover donaciones cercanas a medianoche.
+function fechaColombia(fecha) {
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date(fecha));
+  const valores = Object.fromEntries(partes.map(parte => [parte.type, parte.value]));
+  return `${valores.year}-${valores.month}-${valores.day}`;
+}
+
 // Aplica los filtros de tipo/talla del dashboard sobre todas las prendas
 // donadas (cualquier estado: el dashboard mide participación total).
 async function datosFiltrados() {
   const tipo = $("#dashTipo").value, talla = $("#dashTalla").value;
-  let query = supabaseClient.from("prendas").select("id, tipo, creada");
+  let query = supabaseClient.from("prendas").select("id, tipo, talla, creada")
+    .order("creada", { ascending: true });
   if (tipo) query = query.eq("tipo", tipo);
   if (talla) query = query.eq("talla", talla);
   const { data, error } = await query;
@@ -81,7 +95,7 @@ function contarPorTipo(lista) {
 function contarPorFecha(lista) {
   const conteoPorDia = new Map();
   lista.forEach(p => {
-    const dia = new Date(p.creada).toISOString().slice(0, 10);
+    const dia = fechaColombia(p.creada);
     conteoPorDia.set(dia, (conteoPorDia.get(dia) || 0) + 1);
   });
   return [...conteoPorDia.entries()]
