@@ -62,7 +62,7 @@ async function pintarPendientes() {
 async function aceptarPrenda(p) {
   const { error } = await supabaseClient.from("prendas").update({ estado: "disponible" }).eq("id", p.id);
   if (error) { alert("No se pudo aceptar la donación: " + error.message); return; }
-  pintarPendientes();
+  await pintarPendientes();
 }
 
 // Rechaza una donación pendiente: queda marcada "rechazada".
@@ -71,7 +71,7 @@ async function aceptarPrenda(p) {
 async function rechazarPrenda(p) {
   const { error } = await supabaseClient.from("prendas").update({ estado: "rechazada" }).eq("id", p.id);
   if (error) { alert("No se pudo rechazar la donación: " + error.message); return; }
-  pintarPendientes();
+  await pintarPendientes();
 }
 
 // Fin de la gestión de donaciones pendientes.

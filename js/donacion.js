@@ -37,10 +37,9 @@ $("#dImagen").addEventListener("change", async (e) => {
 
 $("#formDonacion").addEventListener("submit", async (e) => {
   e.preventDefault();
+  const btn = $("#formDonacion button[type=submit]");
   $("#donacionError").classList.add("oculto");
   const defectos = $("#dDefectos").value.trim().slice(0, 300);
-  const btn = $("#formDonacion button[type=submit]");
-  btn.disabled = true;
 
   try {
     let imagen_url = null;

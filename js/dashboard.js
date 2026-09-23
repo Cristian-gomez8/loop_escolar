@@ -286,13 +286,13 @@ function construirFilaReserva(r, alCambiarEstado) {
     botonEntregar.type = "button";
     botonEntregar.className = "btn-sec";
     botonEntregar.textContent = "Marcar como entregado";
-    botonEntregar.onclick = async () => { await marcarEntregado(r); alCambiarEstado(); };
+    botonEntregar.onclick = async () => { await marcarEntregado(r); await alCambiarEstado(); };
 
     const botonCancelar = document.createElement("button");
     botonCancelar.type = "button";
     botonCancelar.className = "btn-sec";
     botonCancelar.textContent = "Cancelar";
-    botonCancelar.onclick = async () => { await cancelarReserva(r); alCambiarEstado(); };
+    botonCancelar.onclick = async () => { await cancelarReserva(r); await alCambiarEstado(); };
 
     envoltorio.append(botonEntregar, botonCancelar);
     cEstado.append(envoltorio);

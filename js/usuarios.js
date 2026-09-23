@@ -100,9 +100,9 @@ async function cambiarRol(u, nuevoRol) {
   pintarUsuarios();
 }
 
-// Elimina el perfil de un usuario (ver nota arriba sobre por qué la
-// cuenta de acceso en sí no se borra desde aquí). Bloquea la
-// auto-eliminación y la eliminación del último administrador.
+// Elimina la cuenta completa mediante una función RPC segura: borra auth.users
+// y el perfil relacionado en public.usuarios. Bloquea la auto-eliminación y
+// la eliminación del último administrador.
 async function eliminarUsuario(u) {
   if (sesion && sesion.id === u.id) {
     alert("No puedes eliminar tu propia cuenta mientras tienes la sesión iniciada.");
@@ -114,7 +114,9 @@ async function eliminarUsuario(u) {
   }
   if (!confirm(`¿Eliminar la cuenta de ${u.nombre} (${u.email})? Ya no podrá entrar a la app.`)) return;
 
-  const { error } = await supabaseClient.from("usuarios").delete().eq("id", u.id);
+  const { error } = await supabaseClient.rpc("eliminar_usuario", {
+    p_usuario_id: u.id
+  });
   if (error) {
     alert("No se pudo eliminar el usuario: " + error.message);
     return;
@@ -155,16 +157,16 @@ $("#formUsuarioNuevo").addEventListener("submit", async (e) => {
 
   // El trigger on_auth_user_created ya creó el perfil con rol="usuario";
   // acá se fija el rol elegido en el formulario, si es distinto.
-  if (rol !== "usuario") {
-    const { error: errRol } = await supabaseClient.from("usuarios").update({ rol }).eq("id", data.user.id);
-    if (errRol) {
-      $("#usuarioError").textContent = "El usuario se creó, pero no se pudo fijar su rol: " + errRol.message;
-      $("#usuarioError").classList.remove("oculto");
-      pintarUsuarios();
-      return;
+    if (rol !== "usuario") {
+      const { error: errRol } = await supabaseClient.from("usuarios").update({ rol }).eq("id", data.user.id);
+      if (errRol) {
+        $("#usuarioError").textContent = "El usuario se creó, pero no se pudo fijar su rol: " + errRol.message;
+        $("#usuarioError").classList.remove("oculto");
+        pintarUsuarios();
+        return;
+      }
     }
-  }
 
-  $("#formUsuarioNuevo").reset();
+    $("#formUsuarioNuevo").reset();
   pintarUsuarios();
 });

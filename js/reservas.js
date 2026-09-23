@@ -50,5 +50,5 @@ async function pintarReservas() {
 async function cancelar(r) {
   const { error } = await supabaseClient.rpc("cancelar_reserva", { p_reserva_id: r.id });
   if (error) { alert("No se pudo cancelar la reserva: " + error.message); return; }
-  pintarReservas();
+  await pintarReservas();
 }
