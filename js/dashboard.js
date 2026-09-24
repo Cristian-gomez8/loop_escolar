@@ -372,6 +372,4 @@ async function pintarDashboard() {
     dibujarBarras($("#graficaBarras"), contarPorTipo(lista));
     dibujarLinea($("#graficaLinea"), contarPorFecha(lista));
   }
-
-  await pintarTablaReservas(new Set(lista.map(p => p.id)));
 }

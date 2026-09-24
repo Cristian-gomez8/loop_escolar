@@ -1,24 +1,28 @@
 /* =========================================================
-   reservas.js — Vista "Mis reservas" del usuario en sesión.
+    reservas.js — Vista de reservas del usuario en sesión o del admin.
    ========================================================= */
 
-// Renderiza las reservas del usuario en sesión, ordenadas por
+// Renderiza las reservas visibles para el usuario en sesión, ordenadas por
 // fecha de entrega más próxima primero. Si almacén ya marcó la prenda
 // como "entregada" (ver dashboard.js/almacen.js), se muestra un chip
 // en vez del botón Cancelar: ya no tiene sentido cancelar algo que el
-// usuario ya recogió físicamente.
+// usuario ya recogió físicamente. El admin puede ver las reservas de todos;
+// los demás roles solo reciben las reservas propias desde la consulta.
 async function pintarReservas() {
-  const { data, error } = await supabaseClient
+  let query = supabaseClient
     .from("reservas")
-    .select("*, prenda:prendas(tipo,talla,defectos,estado,imagen_url)")
-    .eq("usuario_id", sesion.id)
+    .select("*, usuario:usuarios(nombre), prenda:prendas(tipo,talla,defectos,estado,imagen_url)");
+  if (sesion.rol !== "admin") query = query.eq("usuario_id", sesion.id);
+  const { data, error } = await query
     .order("fecha_entrega", { ascending: true });
   if (error) { console.error(error); return; }
 
   const ul = $("#listaReservas");
   ul.innerHTML = "";
   $("#vacioReservas").textContent = data.length ? "" :
-    "Aún no tienes reservas. Ve al catálogo para reservar una prenda.";
+    sesion.rol === "admin"
+      ? "No hay reservas registradas."
+      : "Aún no tienes reservas. Ve al catálogo para reservar una prenda.";
 
   data.forEach(r => {
     const p = r.prenda;
@@ -37,7 +41,8 @@ async function pintarReservas() {
       ${entregada ? '<span class="chip">Entregado</span>' : '<button class="btn-sec">Cancelar</button>'}`;
     if (p && p.imagen_url) li.querySelector(".miniatura-chica").src = p.imagen_url;
     li.querySelector("h2").textContent = `${p ? p.tipo : "Prenda"} · Talla ${p ? p.talla : "—"}`;
-    li.querySelector(".nota").textContent = p && p.defectos ? "Defectos: " + p.defectos : "Sin defectos";
+    const usuario = sesion.rol === "admin" && r.usuario ? `Reservó: ${r.usuario.nombre}. ` : "";
+    li.querySelector(".nota").textContent = usuario + (p && p.defectos ? "Defectos: " + p.defectos : "Sin defectos");
     li.querySelector(".entrega b").textContent = fecha;
     if (!entregada) li.querySelector("button").onclick = () => cancelar(r);
     ul.append(li);

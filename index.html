@@ -120,10 +120,10 @@
       </form>
     </section>
 
-    <!-- Reservas: prendas que el usuario en sesión tiene reservadas. -->
+    <!-- Reservas: el usuario ve las propias; el admin ve todas. -->
     <section id="vistaReservas" class="oculto">
       <h1>Reservas</h1>
-      <p class="sub">Estas son las prendas que reservaste y la fecha en que puedes recogerlas.</p>
+      <p class="sub">Consulta las reservas y la fecha en que pueden recogerse.</p>
       <ul class="lista" id="listaReservas"></ul>
       <p class="nota" id="vacioReservas"></p>
     </section>
@@ -174,27 +174,6 @@
         </div>
       </section>
 
-      <!-- Grilla de reservas: qué se reservó, quién lo reservó y su
-           descripción. Respeta los mismos filtros de tipo/talla de arriba. -->
-      <section class="dashboard-bloque dashboard-reservas">
-        <h2 class="dashboard-titulo">Reservas relacionadas</h2>
-        <div class="tarjeta tarjeta-grafica" style="margin-top:1.25rem">
-        <h2 style="margin:0 0 .25rem;font-size:1.05rem">Reservas realizadas</h2>
-        <table class="tabla-reservas" id="tablaReservas">
-          <thead>
-            <tr>
-              <th>Reservado por</th>
-              <th>Prenda</th>
-              <th>Descripción</th>
-              <th>Fecha de entrega</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        <p class="nota" id="vacioTablaReservas"></p>
-        </div>
-      </section>
     </section>
 
     <!-- Usuarios: CRUD completo, solo rol "admin". -->
