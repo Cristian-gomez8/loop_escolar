@@ -39,7 +39,10 @@ $("#formDonacion").addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn = $("#formDonacion button[type=submit]");
   $("#donacionError").classList.add("oculto");
-  const defectos = $("#dDefectos").value.trim().slice(0, 300);
+  const descripcion = $("#dDefectos").value.trim().slice(0, 300);
+  const defectos = descripcion
+    ? descripcion[0].toLocaleUpperCase("es") + descripcion.slice(1)
+    : "";
 
   try {
     let imagen_url = null;

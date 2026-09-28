@@ -31,6 +31,10 @@ async function obtenerPrendasVisibles() {
 async function pintarCatalogo() {
   const tipo = $("#filtroTipo").value, talla = $("#filtroTalla").value;
   const visibles = await obtenerPrendasVisibles();
+  const { data: reservasPropias, error: errorReservas } = await supabaseClient
+    .from("reservas").select("prenda_id").eq("usuario_id", sesion.id);
+  if (errorReservas) console.error(errorReservas);
+  const prendasReservadasPorMi = new Set((reservasPropias || []).map(r => r.prenda_id));
   const lista = visibles.filter(p => (!tipo || p.tipo === tipo) && (!talla || p.talla === talla));
 
   const ul = $("#listaPrendas");
@@ -42,10 +46,11 @@ async function pintarCatalogo() {
     const li = document.createElement("li");
     li.className = "prenda catalogo-foto";
     const disponible = p.estado === "disponible";
+    const reservadaPorMi = p.estado === "reservada" && prendasReservadasPorMi.has(p.id);
     li.innerHTML = `${p.imagen_url ? '<img class="miniatura" alt="Foto de prenda autorizada">' : '<div class="sin-foto">Sin foto</div>'}
       <h2 class="titulo-prenda"></h2>
       <p class="descripcion-prenda"></p>
-      <button class="btn" ${disponible ? "" : "disabled"}>${disponible ? "Reservar" : "No disponible"}</button>`;
+      <button class="btn" ${disponible ? "" : "disabled"}>${disponible ? "Reservar" : reservadaPorMi ? "Reservado" : "No disponible"}</button>`;
     li.querySelector(".titulo-prenda").textContent = `${p.tipo} · Talla ${p.talla}`;
     li.querySelector(".descripcion-prenda").textContent = p.defectos || "Sin descripción";
     if (p.imagen_url) {
