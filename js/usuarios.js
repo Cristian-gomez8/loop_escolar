@@ -44,16 +44,24 @@ function contarAdmins() {
 // Trae las cuentas reales de Authentication junto con sus perfiles.
 // La RPC también incluye cuentas cuyo perfil público aún no exista.
 async function pintarUsuarios() {
-  const { data, error } = await supabaseClient.rpc("listar_usuarios_admin");
+  let { data, error } = await supabaseClient.rpc("listar_usuarios_admin");
   if (error) {
-    console.error(error);
-    $("#vacioUsuarios").textContent = "No se pudo cargar la lista de usuarios.";
-    return;
+    console.warn("No se pudo consultar listar_usuarios_admin; se usarán los perfiles públicos.", error);
+    ({ data, error } = await supabaseClient
+      .from("usuarios")
+      .select("id, nombre, email, rol, creado_en")
+      .order("creado_en", { ascending: false }));
   }
-  usuarios = data;
 
   const ul = $("#listaUsuarios");
   ul.innerHTML = "";
+  if (error) {
+    console.error(error);
+    $("#vacioUsuarios").textContent = `No se pudo cargar la lista de usuarios: ${error.message}`;
+    return;
+  }
+  usuarios = data || [];
+
   $("#vacioUsuarios").textContent = usuarios.length ? "" : "No hay usuarios registrados.";
 
   usuarios
