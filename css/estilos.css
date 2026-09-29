@@ -600,6 +600,23 @@ input:focus, select:focus, textarea:focus {
   background: var(--verde-claro);
 }
 
+#dialogEditarDonacion {
+  width: min(520px, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  padding: 1.5rem;
+  border: 1px solid var(--borde);
+  border-radius: 0.75rem;
+  color: var(--texto);
+  box-shadow: var(--sombra);
+}
+#dialogEditarDonacion::backdrop { background: rgba(16, 35, 24, 0.55); }
+#dialogEditarDonacion h2 { margin: 0; color: var(--verde-osc); font-size: 1.25rem; }
+#dialogEditarDonacion .miniatura { max-width: 100%; max-height: 180px; object-fit: contain; }
+#dialogEditarDonacion .editor-quitar-foto { display: flex; align-items: center; gap: 0.5rem; }
+#dialogEditarDonacion .editor-quitar-foto input { width: auto; margin: 0; }
+.acciones-editor { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.acciones-editor button { width: auto; margin: 0; }
+
 /* ---------- Separación visual del Dashboard ---------- */
 .dashboard-bloque {
   margin-top: 2rem;

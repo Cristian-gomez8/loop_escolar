@@ -13,6 +13,36 @@
 
 // Renderiza las prendas pendientes de revisión, con la foto (si tiene),
 // tipo, talla, defectos declarados y quién la donó.
+llenar($("#editarTipo"), TIPOS);
+llenar($("#editarTalla"), TALLAS);
+
+let imagenEdicion = null;
+let donacionEdicion = null;
+
+$("#editarImagen").addEventListener("change", async (e) => {
+  const archivo = e.target.files[0];
+  imagenEdicion = null;
+  if (!archivo) return;
+  if (!archivo.type.startsWith("image/")) {
+    e.target.value = "";
+    mostrarErrorEdicion("Selecciona un archivo de imagen válido.");
+    return;
+  }
+  try {
+    imagenEdicion = await comprimirImagen(archivo);
+    $("#editarImagenPreview").src = URL.createObjectURL(imagenEdicion);
+    $("#editarImagenPreview").classList.remove("oculto");
+    $("#editarQuitarImagen").checked = false;
+    $("#editarDonacionError").classList.add("oculto");
+  } catch {
+    e.target.value = "";
+    mostrarErrorEdicion("No se pudo procesar la foto. Intenta con otra imagen.");
+  }
+});
+
+$("#btnCancelarEdicion").onclick = () => $("#dialogEditarDonacion").close();
+$("#formEditarDonacion").addEventListener("submit", guardarEdicionDonacion);
+
 async function pintarPendientes() {
   const { data, error } = await supabaseClient
     .from("prendas")
@@ -49,6 +79,13 @@ async function pintarPendientes() {
     botonAceptar.className = "btn-sec";
     botonAceptar.textContent = "Aceptar";
     botonAceptar.onclick = () => aceptarPrenda(p);
+    if (sesion && sesion.rol === "admin") {
+      const botonEditar = document.createElement("button");
+      botonEditar.className = "btn-sec";
+      botonEditar.textContent = "Editar";
+      botonEditar.onclick = () => abrirEditorDonacion(p);
+      cAcciones.append(botonEditar);
+    }
     const botonRechazar = document.createElement("button");
     botonRechazar.className = "btn-peligro";
     botonRechazar.textContent = "Rechazar";
@@ -56,6 +93,72 @@ async function pintarPendientes() {
     cAcciones.append(botonAceptar, botonRechazar);
     cuerpo.append(fila);
   });
+}
+
+function abrirEditorDonacion(p) {
+  if (!sesion || sesion.rol !== "admin") return;
+  donacionEdicion = p;
+  imagenEdicion = null;
+  $("#formEditarDonacion").reset();
+  $("#editarTipo").value = p.tipo;
+  $("#editarTalla").value = p.talla;
+  $("#editarDefectos").value = p.defectos || "";
+  $("#editarImagen").value = "";
+  $("#editarImagenPreview").classList.toggle("oculto", !p.imagen_url);
+  if (p.imagen_url) $("#editarImagenPreview").src = p.imagen_url;
+  $("#editarQuitarImagen").disabled = !p.imagen_url;
+  $("#editarDonacionError").classList.add("oculto");
+  $("#dialogEditarDonacion").showModal();
+}
+
+function mostrarErrorEdicion(mensaje) {
+  $("#editarDonacionError").textContent = mensaje;
+  $("#editarDonacionError").classList.remove("oculto");
+}
+
+async function guardarEdicionDonacion(e) {
+  e.preventDefault();
+  if (!sesion || sesion.rol !== "admin" || !donacionEdicion) return;
+
+  const botonGuardar = $("#formEditarDonacion button[type=submit]");
+  const cambiarImagen = Boolean(imagenEdicion) || $("#editarQuitarImagen").checked;
+  let nuevaImagenUrl = null;
+  let guardado = false;
+  botonGuardar.disabled = true;
+  $("#editarDonacionError").classList.add("oculto");
+
+  try {
+    if (imagenEdicion) nuevaImagenUrl = await subirImagenPrenda(imagenEdicion);
+    const defectos = $("#editarDefectos").value.trim().slice(0, 300);
+    const cambios = {
+      tipo: $("#editarTipo").value,
+      talla: $("#editarTalla").value,
+      defectos: defectos || null
+    };
+    if (imagenEdicion) cambios.imagen_url = nuevaImagenUrl;
+    else if ($("#editarQuitarImagen").checked) cambios.imagen_url = null;
+
+    const { data, error } = await supabaseClient.from("prendas")
+      .update(cambios).eq("id", donacionEdicion.id).eq("estado", "pendiente").select("id");
+    if (error || !data.length) {
+      if (nuevaImagenUrl) await borrarImagenPrenda(nuevaImagenUrl);
+      mostrarErrorEdicion(error ? "No se pudieron guardar los cambios: " + error.message : "La donación ya no está pendiente.");
+      return;
+    }
+
+    guardado = true;
+    if (cambiarImagen && donacionEdicion.imagen_url) {
+      await borrarImagenPrenda(donacionEdicion.imagen_url);
+    }
+    $("#dialogEditarDonacion").close();
+    donacionEdicion = null;
+    await pintarPendientes();
+  } catch (error) {
+    if (nuevaImagenUrl && !guardado) await borrarImagenPrenda(nuevaImagenUrl);
+    mostrarErrorEdicion("No se pudieron guardar los cambios: " + error.message);
+  } finally {
+    botonGuardar.disabled = false;
+  }
 }
 
 // Acepta una donación pendiente: queda "disponible" en el catálogo.

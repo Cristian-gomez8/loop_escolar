@@ -151,6 +151,27 @@
       <p class="nota" id="vacioPendientes"></p>
     </section>
 
+    <dialog id="dialogEditarDonacion" aria-labelledby="tituloEditarDonacion">
+      <form id="formEditarDonacion">
+        <h2 id="tituloEditarDonacion">Editar donación pendiente</h2>
+        <label for="editarTipo">Tipo de prenda</label>
+        <select id="editarTipo" required></select>
+        <label for="editarTalla">Talla</label>
+        <select id="editarTalla" required></select>
+        <label for="editarDefectos">Descripción (opcional)</label>
+        <textarea id="editarDefectos" rows="3" maxlength="300"></textarea>
+        <label for="editarImagen">Cambiar foto (opcional)</label>
+        <input id="editarImagen" type="file" accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg" />
+        <img id="editarImagenPreview" class="miniatura oculto" alt="Vista previa de la foto" />
+        <label class="editor-quitar-foto"><input id="editarQuitarImagen" type="checkbox" /> Quitar foto actual</label>
+        <p id="editarDonacionError" class="error oculto"></p>
+        <div class="acciones-editor">
+          <button id="btnCancelarEdicion" class="btn-sec" type="button">Cancelar</button>
+          <button class="btn" type="submit">Guardar cambios</button>
+        </div>
+      </form>
+    </dialog>
+
     <!-- Dashboard: estadísticas de donaciones, solo roles "almacen"/"admin".
          Los filtros aplican por igual a las dos gráficas (ver dashboard.js). -->
     <section id="vistaDashboard" class="oculto">
