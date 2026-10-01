@@ -52,6 +52,13 @@ async function subirImagenPrenda(blob) {
   return data.publicUrl;
 }
 
+function obtenerFotosPrenda(prenda) {
+  if (Array.isArray(prenda.imagen_urls) && prenda.imagen_urls.length) {
+    return prenda.imagen_urls.filter(url => typeof url === "string" && url);
+  }
+  return prenda.imagen_url ? [prenda.imagen_url] : [];
+}
+
 // Borra una imagen de prenda del bucket a partir de su URL pública
 // (usado al eliminar una prenda desde el catálogo de admin).
 async function borrarImagenPrenda(url) {

@@ -1,14 +1,8 @@
 /* =========================================================
    catalogo.js — Vista del catálogo de prendas.
-   Para el resto de roles solo muestra prendas ya aprobadas por
-   almacén ("disponible"/"reservada"): las "pendiente" y "rechazada"
-   se gestionan en la vista de almacén (almacen.js).
-   Para el rol "admin" muestra TODAS las prendas (cualquier estado)
-   y agrega CRUD directo sobre el catálogo: crear, editar y eliminar
-   una prenda sin pasar por el flujo de donación/aprobación. El admin
-   no cambia el estado desde aquí (eso lo siguen gobernando donar →
-   pendiente, almacén → aceptar/rechazar y reservar/cancelar); una
-   prenda creada por el admin nace directamente "disponible".
+  Solo muestra prendas "disponible", para que las reservadas no
+  sigan apareciendo en el catálogo. Las pendientes y rechazadas se
+  gestionan en almacén; el admin puede crear, editar y eliminar prendas.
    ========================================================= */
 
 llenar($("#filtroTipo"),  TIPOS,  "Todos los tipos");
@@ -16,14 +10,12 @@ llenar($("#filtroTalla"), TALLAS, "Todas las tallas", "Talla ");
 $("#filtroTipo").onchange = pintarCatalogo;
 $("#filtroTalla").onchange = pintarCatalogo;
 
-// Trae todas las prendas visibles para el rol actual (RLS ya filtra a
-// nivel de fila. El catálogo solo muestra prendas autorizadas por almacén:
-// disponible o reservada; las pendientes y rechazadas quedan en Donaciones.
+// El catálogo muestra únicamente prendas que todavía se pueden reservar.
 async function obtenerPrendasVisibles() {
   const { data, error } = await supabaseClient
     .from("prendas").select("*").order("creada", { ascending: false });
   if (error) { console.error(error); return []; }
-  return data.filter(p => p.estado === "disponible" || p.estado === "reservada");
+  return data.filter(p => p.estado === "disponible");
 }
 
 // Renderiza la lista de prendas según los filtros de tipo/talla,
@@ -31,10 +23,6 @@ async function obtenerPrendasVisibles() {
 async function pintarCatalogo() {
   const tipo = $("#filtroTipo").value, talla = $("#filtroTalla").value;
   const visibles = await obtenerPrendasVisibles();
-  const { data: reservasPropias, error: errorReservas } = await supabaseClient
-    .from("reservas").select("prenda_id").eq("usuario_id", sesion.id);
-  if (errorReservas) console.error(errorReservas);
-  const prendasReservadasPorMi = new Set((reservasPropias || []).map(r => r.prenda_id));
   const lista = visibles.filter(p => (!tipo || p.tipo === tipo) && (!talla || p.talla === talla));
 
   const ul = $("#listaPrendas");
@@ -45,21 +33,73 @@ async function pintarCatalogo() {
   lista.forEach(p => {
     const li = document.createElement("li");
     li.className = "prenda catalogo-foto";
-    const disponible = p.estado === "disponible";
-    const reservadaPorMi = p.estado === "reservada" && prendasReservadasPorMi.has(p.id);
-    li.innerHTML = `${p.imagen_url ? '<img class="miniatura" alt="Foto de prenda autorizada">' : '<div class="sin-foto">Sin foto</div>'}
+    const fotos = obtenerFotosPrenda(p);
+    li.innerHTML = `${fotos.length ? '<div class="galeria-prenda"></div>' : '<div class="sin-foto">Sin foto</div>'}
       <h2 class="titulo-prenda"></h2>
       <p class="descripcion-prenda"></p>
-      <button class="btn" ${disponible ? "" : "disabled"}>${disponible ? "Reservar" : reservadaPorMi ? "Reservado" : "No disponible"}</button>`;
+      <button class="btn btn-ver-prenda" type="button">Ver prenda</button>`;
     li.querySelector(".titulo-prenda").textContent = `${p.tipo} · Talla ${p.talla}`;
     li.querySelector(".descripcion-prenda").textContent = p.defectos || "Sin descripción";
-    if (p.imagen_url) {
-      li.querySelector(".miniatura").src = p.imagen_url;
+    if (fotos.length) {
+      const galeria = li.querySelector(".galeria-prenda");
+      if (fotos.length === 1) galeria.classList.add("sola");
+      fotos.forEach((url, indice) => {
+        const imagen = document.createElement("img");
+        imagen.src = url;
+        imagen.alt = `Foto ${indice + 1} de ${p.tipo}`;
+        galeria.append(imagen);
+      });
     }
-    if (disponible) li.querySelector("button").onclick = () => reservar(p);
+    li.querySelector(".btn-ver-prenda").onclick = () => abrirDetallePrenda(p);
     ul.append(li);
   });
 }
+
+let prendaDetalle = null;
+
+function abrirDetallePrenda(prenda) {
+  prendaDetalle = prenda;
+  const dialogo = $("#dialogDetallePrenda");
+  const galeria = $("#detalleGaleria");
+  const fotos = obtenerFotosPrenda(prenda);
+  galeria.replaceChildren();
+  $("#tituloDetallePrenda").textContent = `${prenda.tipo} · Talla ${prenda.talla}`;
+  $("#detalleTipo").textContent = prenda.tipo;
+  $("#detalleTalla").textContent = prenda.talla;
+  $("#detalleDescripcion").textContent = prenda.defectos || "Sin descripción adicional.";
+  $("#detalleError").classList.add("oculto");
+
+  if (fotos.length) {
+    fotos.forEach((url, indice) => {
+      const imagen = document.createElement("img");
+      imagen.src = url;
+      imagen.alt = `Foto ${indice + 1} de ${prenda.tipo}, talla ${prenda.talla}`;
+      galeria.append(imagen);
+    });
+  } else {
+    const sinFoto = document.createElement("div");
+    sinFoto.className = "sin-foto";
+    sinFoto.textContent = "Sin fotos";
+    galeria.append(sinFoto);
+  }
+
+  dialogo.showModal();
+}
+
+$("#btnCerrarDetalle").onclick = () => $("#dialogDetallePrenda").close();
+$("#dialogDetallePrenda").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.close();
+});
+$("#btnReservarDetalle").onclick = async (e) => {
+  if (!prendaDetalle) return;
+  const boton = e.currentTarget;
+  boton.disabled = true;
+  try {
+    if (await reservar(prendaDetalle)) $("#dialogDetallePrenda").close();
+  } finally {
+    boton.disabled = false;
+  }
+};
 
 // Desde el catálogo, cualquier usuario puede iniciar una nueva donación.
 // El formulario de Donación es el que guarda la prenda pendiente para revisión.
@@ -83,6 +123,12 @@ async function reservar(p) {
   const { error } = await supabaseClient.rpc("reservar_prenda", {
     p_prenda_id: p.id, p_fecha_entrega: fecha_entrega
   });
-  if (error) { alert("No se pudo reservar: " + error.message); return; }
+  if (error) {
+    $("#detalleError").textContent = "No se pudo reservar: " + error.message;
+    $("#detalleError").classList.remove("oculto");
+    return false;
+  }
+  $("#detalleError").classList.add("oculto");
   await pintarCatalogo();
+  return true;
 }

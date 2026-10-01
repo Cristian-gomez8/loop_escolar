@@ -11,7 +11,7 @@
 async function pintarReservas() {
   let query = supabaseClient
     .from("reservas")
-    .select("*, usuario:usuarios(nombre), prenda:prendas(tipo,talla,defectos,estado,imagen_url)");
+    .select("*, usuario:usuarios(nombre), prenda:prendas(*)");
   if (sesion.rol !== "admin") query = query.eq("usuario_id", sesion.id);
   const { data, error } = await query
     .order("fecha_entrega", { ascending: true });
@@ -32,19 +32,34 @@ async function pintarReservas() {
     const li = document.createElement("li");
     li.className = "reserva";
     li.innerHTML = `
-      ${p && p.imagen_url ? '<img class="miniatura-chica" alt="Foto de la prenda">' : ""}
+      <div class="galeria-reserva"></div>
       <div class="mr">
         <h2 style="margin:0;font-size:1.05rem"></h2>
         <p class="nota" style="margin:.15rem 0 0"></p>
       </div>
       <div class="entrega"><small>Entrega</small><b></b></div>
-      ${entregada ? '<span class="chip">Entregado</span>' : '<button class="btn-sec">Cancelar</button>'}`;
-    if (p && p.imagen_url) li.querySelector(".miniatura-chica").src = p.imagen_url;
+      ${entregada ? '<span class="chip">Entregado</span>' : `<div class="acciones-reserva">${sesion.rol === "admin" ? '<button type="button" class="btn-sec btn-entregar">Confirmar entrega</button>' : ""}<button type="button" class="btn-sec btn-cancelar">Cancelar</button></div>`}`;
+    if (p) {
+      obtenerFotosPrenda(p).forEach((url, indice) => {
+        const imagen = document.createElement("img");
+        imagen.src = url;
+        imagen.alt = `Foto ${indice + 1} de la prenda`;
+        li.querySelector(".galeria-reserva").append(imagen);
+      });
+    }
     li.querySelector("h2").textContent = `${p ? p.tipo : "Prenda"} · Talla ${p ? p.talla : "—"}`;
     const usuario = sesion.rol === "admin" && r.usuario ? `Reservó: ${r.usuario.nombre}. ` : "";
     li.querySelector(".nota").textContent = usuario + (p && p.defectos ? "Defectos: " + p.defectos : "Sin defectos");
     li.querySelector(".entrega b").textContent = fecha;
-    if (!entregada) li.querySelector("button").onclick = () => cancelar(r);
+    if (!entregada) {
+      const botonEntrega = li.querySelector(".btn-entregar");
+      if (botonEntrega) {
+        botonEntrega.onclick = async () => {
+          if (await marcarEntregado(r)) await pintarReservas();
+        };
+      }
+      li.querySelector(".btn-cancelar").onclick = () => cancelar(r);
+    }
     ul.append(li);
   });
 }

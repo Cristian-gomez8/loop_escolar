@@ -319,7 +319,11 @@ function construirFilaReserva(r, alCambiarEstado) {
 // queda como registro histórico de que se entregó.
 async function marcarEntregado(r) {
   const { error } = await supabaseClient.rpc("marcar_entregado", { p_reserva_id: r.id });
-  if (error) alert("No se pudo marcar como entregado: " + error.message);
+  if (error) {
+    alert("No se pudo marcar como entregado: " + error.message);
+    return false;
+  }
+  return true;
 }
 
 // Cancela una reserva todavía no entregada, desde la grilla de almacén o

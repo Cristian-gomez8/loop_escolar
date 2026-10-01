@@ -99,6 +99,28 @@
       <p class="nota" id="vacioCatalogo"></p>
     </section>
 
+    <dialog id="dialogDetallePrenda" aria-labelledby="tituloDetallePrenda">
+      <div class="detalle-prenda">
+        <div class="detalle-cabecera">
+          <h2 id="tituloDetallePrenda">Detalle de la prenda</h2>
+          <button id="btnCerrarDetalle" class="btn-sec" type="button">Cerrar</button>
+        </div>
+        <div id="detalleGaleria" class="detalle-galeria"></div>
+        <dl class="detalle-datos">
+          <div><dt>Tipo</dt><dd id="detalleTipo"></dd></div>
+          <div><dt>Talla</dt><dd id="detalleTalla"></dd></div>
+        </dl>
+        <div class="detalle-descripcion">
+          <h3>Descripción</h3>
+          <p id="detalleDescripcion"></p>
+        </div>
+        <p id="detalleError" class="error oculto"></p>
+        <div class="detalle-acciones">
+          <button id="btnReservarDetalle" class="btn" type="button">Reservar prenda</button>
+        </div>
+      </div>
+    </dialog>
+
     <!-- Donación: registra una prenda en estado "pendiente" hasta que
          almacén la revise. Permite adjuntar una foto opcional. -->
     <section id="vistaDonacion" class="oculto form-estrecho">
@@ -111,9 +133,9 @@
         <select id="dTalla"></select>
         <label for="dDefectos">Defectos o detalles (opcional)</label>
         <textarea id="dDefectos" rows="3" maxlength="300" placeholder="Ej: pequeña mancha en la manga, cremallera dura…"></textarea>
-        <label for="dImagen">Foto de la prenda (opcional)</label>
-        <input id="dImagen" type="file" accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg" />
-        <img id="dImagenPreview" class="miniatura oculto" alt="Vista previa de la foto" />
+        <label for="dImagen">Fotos de la prenda (máximo 5, opcional)</label>
+        <input id="dImagen" type="file" accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg" multiple />
+        <div id="dImagenPreview" class="vista-previa-fotos oculto" aria-live="polite"></div>
         <p id="donacionError" class="error oculto"></p>
         <p id="donacionOk" class="ok oculto"></p>
         <button class="btn" type="submit">Donar prenda</button>
@@ -160,10 +182,10 @@
         <select id="editarTalla" required></select>
         <label for="editarDefectos">Descripción (opcional)</label>
         <textarea id="editarDefectos" rows="3" maxlength="300"></textarea>
-        <label for="editarImagen">Cambiar foto (opcional)</label>
+        <label for="editarImagen">Reemplazar todas las fotos (opcional)</label>
         <input id="editarImagen" type="file" accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg" />
         <img id="editarImagenPreview" class="miniatura oculto" alt="Vista previa de la foto" />
-        <label class="editor-quitar-foto"><input id="editarQuitarImagen" type="checkbox" /> Quitar foto actual</label>
+        <label class="editor-quitar-foto"><input id="editarQuitarImagen" type="checkbox" /> Quitar todas las fotos actuales</label>
         <p id="editarDonacionError" class="error oculto"></p>
         <div class="acciones-editor">
           <button id="btnCancelarEdicion" class="btn-sec" type="button">Cancelar</button>

@@ -65,12 +65,18 @@ async function pintarPendientes() {
     cTalla.textContent = p.talla;
     cDescripcion.textContent = p.defectos || "Sin defectos reportados";
     cDonante.textContent = p.donante ? `${p.donante.nombre} (${p.donante.email})` : "Usuario eliminado";
-    if (p.imagen_url) {
-      const imagen = document.createElement("img");
-      imagen.className = "miniatura-tabla";
-      imagen.alt = "Foto de la prenda";
-      imagen.src = p.imagen_url;
-      cFoto.append(imagen);
+    const fotos = obtenerFotosPrenda(p);
+    if (fotos.length) {
+      const galeria = document.createElement("div");
+      galeria.className = "galeria-prenda compacta";
+      fotos.forEach((url, indice) => {
+        const imagen = document.createElement("img");
+        imagen.className = "miniatura-tabla";
+        imagen.alt = `Foto ${indice + 1} de la prenda`;
+        imagen.src = url;
+        galeria.append(imagen);
+      });
+      cFoto.append(galeria);
     } else {
       cFoto.textContent = "Sin foto";
     }
@@ -104,9 +110,10 @@ function abrirEditorDonacion(p) {
   $("#editarTalla").value = p.talla;
   $("#editarDefectos").value = p.defectos || "";
   $("#editarImagen").value = "";
-  $("#editarImagenPreview").classList.toggle("oculto", !p.imagen_url);
-  if (p.imagen_url) $("#editarImagenPreview").src = p.imagen_url;
-  $("#editarQuitarImagen").disabled = !p.imagen_url;
+  const fotos = obtenerFotosPrenda(p);
+  $("#editarImagenPreview").classList.toggle("oculto", !fotos.length);
+  if (fotos.length) $("#editarImagenPreview").src = fotos[0];
+  $("#editarQuitarImagen").disabled = !fotos.length;
   $("#editarDonacionError").classList.add("oculto");
   $("#dialogEditarDonacion").showModal();
 }
@@ -122,6 +129,7 @@ async function guardarEdicionDonacion(e) {
 
   const botonGuardar = $("#formEditarDonacion button[type=submit]");
   const cambiarImagen = Boolean(imagenEdicion) || $("#editarQuitarImagen").checked;
+  const fotosAnteriores = obtenerFotosPrenda(donacionEdicion);
   let nuevaImagenUrl = null;
   let guardado = false;
   botonGuardar.disabled = true;
@@ -135,8 +143,13 @@ async function guardarEdicionDonacion(e) {
       talla: $("#editarTalla").value,
       defectos: defectos || null
     };
-    if (imagenEdicion) cambios.imagen_url = nuevaImagenUrl;
-    else if ($("#editarQuitarImagen").checked) cambios.imagen_url = null;
+    if (imagenEdicion) {
+      cambios.imagen_url = nuevaImagenUrl;
+      cambios.imagen_urls = [nuevaImagenUrl];
+    } else if ($("#editarQuitarImagen").checked) {
+      cambios.imagen_url = null;
+      cambios.imagen_urls = [];
+    }
 
     const { data, error } = await supabaseClient.from("prendas")
       .update(cambios).eq("id", donacionEdicion.id).eq("estado", "pendiente").select("id");
@@ -147,8 +160,8 @@ async function guardarEdicionDonacion(e) {
     }
 
     guardado = true;
-    if (cambiarImagen && donacionEdicion.imagen_url) {
-      await borrarImagenPrenda(donacionEdicion.imagen_url);
+    if (cambiarImagen) {
+      await Promise.all([...new Set(fotosAnteriores)].map(borrarImagenPrenda));
     }
     $("#dialogEditarDonacion").close();
     donacionEdicion = null;

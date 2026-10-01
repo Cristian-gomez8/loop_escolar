@@ -487,6 +487,61 @@ input:focus, select:focus, textarea:focus {
   height: 220px;
   margin-bottom: 0;
 }
+.galeria-prenda {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  width: 100%;
+}
+.galeria-prenda img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+.galeria-prenda.sola img {
+  grid-column: span 2;
+  aspect-ratio: 16 / 9;
+  max-height: 220px;
+}
+.galeria-prenda.compacta {
+  grid-template-columns: repeat(3, 64px);
+  width: max-content;
+}
+.galeria-prenda.compacta img {
+  width: 64px;
+  height: 64px;
+  aspect-ratio: auto;
+}
+.vista-previa-fotos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.vista-previa-fotos img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+.galeria-reserva {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  max-width: 140px;
+}
+.galeria-reserva img {
+  width: 54px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 0.4rem;
+}
+.acciones-reserva {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
 .sin-foto {
   height: 220px;
   display: grid;
@@ -616,6 +671,47 @@ input:focus, select:focus, textarea:focus {
 #dialogEditarDonacion .editor-quitar-foto input { width: auto; margin: 0; }
 .acciones-editor { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
 .acciones-editor button { width: auto; margin: 0; }
+
+#dialogDetallePrenda {
+  width: min(760px, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  padding: 1.5rem;
+  border: 1px solid var(--borde);
+  border-radius: 0.75rem;
+  color: var(--texto);
+  box-shadow: var(--sombra);
+  overflow-y: auto;
+}
+#dialogDetallePrenda::backdrop { background: rgba(16, 35, 24, 0.55); }
+.detalle-prenda { display: grid; gap: 1rem; }
+.detalle-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.detalle-cabecera h2 { margin: 0; color: var(--verde-osc); font-size: 1.25rem; }
+.detalle-cabecera button { width: auto; }
+.detalle-galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+.detalle-galeria img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  background: var(--verde-claro);
+}
+.detalle-galeria .sin-foto { height: auto; min-height: 150px; }
+.detalle-datos { display: flex; gap: 2rem; margin: 0; }
+.detalle-datos dt { color: var(--gris); font-size: 0.8rem; }
+.detalle-datos dd { margin: 0.2rem 0 0; font-weight: 700; }
+.detalle-descripcion h3 { margin: 0 0 0.25rem; font-size: 0.95rem; }
+.detalle-descripcion p { margin: 0; white-space: pre-wrap; }
+.detalle-acciones { display: flex; justify-content: flex-end; }
+.detalle-acciones button { width: auto; }
+
+@media (max-width: 520px) {
+  #dialogDetallePrenda { padding: 1rem; }
+  .detalle-galeria { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 /* ---------- Separación visual del Dashboard ---------- */
 .dashboard-bloque {
