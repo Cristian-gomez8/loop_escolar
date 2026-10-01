@@ -105,18 +105,28 @@
           <h2 id="tituloDetallePrenda">Detalle de la prenda</h2>
           <button id="btnCerrarDetalle" class="btn-sec" type="button">Cerrar</button>
         </div>
-        <div id="detalleGaleria" class="detalle-galeria"></div>
-        <dl class="detalle-datos">
-          <div><dt>Tipo</dt><dd id="detalleTipo"></dd></div>
-          <div><dt>Talla</dt><dd id="detalleTalla"></dd></div>
-        </dl>
-        <div class="detalle-descripcion">
-          <h3>Descripción</h3>
-          <p id="detalleDescripcion"></p>
-        </div>
-        <p id="detalleError" class="error oculto"></p>
-        <div class="detalle-acciones">
-          <button id="btnReservarDetalle" class="btn" type="button">Reservar prenda</button>
+        <div class="detalle-contenido">
+          <div class="detalle-fotos">
+            <button id="btnFotoAnterior" class="foto-flecha" type="button" aria-label="Foto anterior">&#8592;</button>
+            <div id="detalleGaleria" class="detalle-galeria"></div>
+            <button id="btnFotoSiguiente" class="foto-flecha" type="button" aria-label="Foto siguiente">&#8594;</button>
+            <p id="detalleFotoIndicador" class="detalle-foto-indicador"></p>
+          </div>
+          <div class="detalle-informacion">
+            <dl class="detalle-datos">
+              <div><dt>Tipo</dt><dd id="detalleTipo"></dd></div>
+              <div><dt>Talla</dt><dd id="detalleTalla"></dd></div>
+            </dl>
+            <div class="detalle-descripcion">
+              <h3>Descripción</h3>
+              <p id="detalleDescripcion"></p>
+            </div>
+            <p id="detalleError" class="error oculto"></p>
+            <div class="detalle-acciones">
+              <button id="btnReservarDetalle" class="btn" type="button">Reservar prenda</button>
+              <button id="btnRetirarPrenda" class="btn-peligro oculto" type="button">Retirar del catálogo</button>
+            </div>
+          </div>
         </div>
       </div>
     </dialog>

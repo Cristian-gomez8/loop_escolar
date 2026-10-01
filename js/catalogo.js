@@ -42,13 +42,11 @@ async function pintarCatalogo() {
     li.querySelector(".descripcion-prenda").textContent = p.defectos || "Sin descripción";
     if (fotos.length) {
       const galeria = li.querySelector(".galeria-prenda");
-      if (fotos.length === 1) galeria.classList.add("sola");
-      fotos.forEach((url, indice) => {
-        const imagen = document.createElement("img");
-        imagen.src = url;
-        imagen.alt = `Foto ${indice + 1} de ${p.tipo}`;
-        galeria.append(imagen);
-      });
+      galeria.classList.add("sola");
+      const imagen = document.createElement("img");
+      imagen.src = fotos[0];
+      imagen.alt = `Foto de ${p.tipo}`;
+      galeria.append(imagen);
     }
     li.querySelector(".btn-ver-prenda").onclick = () => abrirDetallePrenda(p);
     ul.append(li);
@@ -56,37 +54,56 @@ async function pintarCatalogo() {
 }
 
 let prendaDetalle = null;
+let fotosDetalle = [];
+let indiceFotoDetalle = 0;
 
-function abrirDetallePrenda(prenda) {
-  prendaDetalle = prenda;
-  const dialogo = $("#dialogDetallePrenda");
+function pintarFotoDetalle() {
   const galeria = $("#detalleGaleria");
-  const fotos = obtenerFotosPrenda(prenda);
+  const soloUna = fotosDetalle.length <= 1;
+  $("#btnFotoAnterior").classList.toggle("oculto", soloUna);
+  $("#btnFotoSiguiente").classList.toggle("oculto", soloUna);
+  $("#detalleFotoIndicador").textContent = soloUna ? "" : `${indiceFotoDetalle + 1} / ${fotosDetalle.length}`;
   galeria.replaceChildren();
-  $("#tituloDetallePrenda").textContent = `${prenda.tipo} · Talla ${prenda.talla}`;
-  $("#detalleTipo").textContent = prenda.tipo;
-  $("#detalleTalla").textContent = prenda.talla;
-  $("#detalleDescripcion").textContent = prenda.defectos || "Sin descripción adicional.";
-  $("#detalleError").classList.add("oculto");
 
-  if (fotos.length) {
-    fotos.forEach((url, indice) => {
-      const imagen = document.createElement("img");
-      imagen.src = url;
-      imagen.alt = `Foto ${indice + 1} de ${prenda.tipo}, talla ${prenda.talla}`;
-      galeria.append(imagen);
-    });
+  if (fotosDetalle.length) {
+    const imagen = document.createElement("img");
+    imagen.src = fotosDetalle[indiceFotoDetalle];
+    imagen.alt = `Foto ${indiceFotoDetalle + 1} de ${prendaDetalle.tipo}, talla ${prendaDetalle.talla}`;
+    galeria.append(imagen);
   } else {
     const sinFoto = document.createElement("div");
     sinFoto.className = "sin-foto";
     sinFoto.textContent = "Sin fotos";
     galeria.append(sinFoto);
   }
+}
 
+function abrirDetallePrenda(prenda) {
+  prendaDetalle = prenda;
+  const dialogo = $("#dialogDetallePrenda");
+  fotosDetalle = obtenerFotosPrenda(prenda);
+  indiceFotoDetalle = 0;
+  $("#tituloDetallePrenda").textContent = `${prenda.tipo} · Talla ${prenda.talla}`;
+  $("#detalleTipo").textContent = prenda.tipo;
+  $("#detalleTalla").textContent = prenda.talla;
+  $("#detalleDescripcion").textContent = prenda.defectos || "Sin descripción adicional.";
+  $("#detalleError").classList.add("oculto");
+  const puedeRetirar = sesion && ["admin", "almacen"].includes(sesion.rol);
+  $("#btnRetirarPrenda").classList.toggle("oculto", !puedeRetirar);
+
+  pintarFotoDetalle();
   dialogo.showModal();
 }
 
+function cambiarFotoDetalle(direccion) {
+  if (fotosDetalle.length < 2) return;
+  indiceFotoDetalle = (indiceFotoDetalle + direccion + fotosDetalle.length) % fotosDetalle.length;
+  pintarFotoDetalle();
+}
+
 $("#btnCerrarDetalle").onclick = () => $("#dialogDetallePrenda").close();
+$("#btnFotoAnterior").onclick = () => cambiarFotoDetalle(-1);
+$("#btnFotoSiguiente").onclick = () => cambiarFotoDetalle(1);
 $("#dialogDetallePrenda").addEventListener("click", (e) => {
   if (e.target === e.currentTarget) e.currentTarget.close();
 });
@@ -96,6 +113,28 @@ $("#btnReservarDetalle").onclick = async (e) => {
   boton.disabled = true;
   try {
     if (await reservar(prendaDetalle)) $("#dialogDetallePrenda").close();
+  } finally {
+    boton.disabled = false;
+  }
+};
+$("#btnRetirarPrenda").onclick = async (e) => {
+  if (!prendaDetalle || !sesion || !["admin", "almacen"].includes(sesion.rol)) return;
+  const confirmar = window.confirm(`¿Retirar ${prendaDetalle.tipo} · Talla ${prendaDetalle.talla} del catálogo?`);
+  if (!confirmar) return;
+
+  const boton = e.currentTarget;
+  boton.disabled = true;
+  try {
+    const { error } = await supabaseClient.rpc("retirar_prenda_catalogo", {
+      p_prenda_id: prendaDetalle.id
+    });
+    if (error) {
+      $("#detalleError").textContent = "No se pudo retirar la prenda: " + error.message;
+      $("#detalleError").classList.remove("oculto");
+      return;
+    }
+    $("#dialogDetallePrenda").close();
+    await pintarCatalogo();
   } finally {
     boton.disabled = false;
   }
