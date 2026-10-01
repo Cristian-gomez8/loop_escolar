@@ -740,8 +740,9 @@ input:focus, select:focus, textarea:focus {
 .detalle-galeria { min-width: 0; }
 .detalle-galeria img {
   width: 100%;
+  height: min(55vh, 430px);
   max-height: 430px;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: auto;
   object-fit: contain;
   border-radius: 0.5rem;
   background: var(--verde-claro);

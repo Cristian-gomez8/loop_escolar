@@ -60,8 +60,12 @@ let indiceFotoDetalle = 0;
 function pintarFotoDetalle() {
   const galeria = $("#detalleGaleria");
   const soloUna = fotosDetalle.length <= 1;
-  $("#btnFotoAnterior").classList.toggle("oculto", soloUna);
-  $("#btnFotoSiguiente").classList.toggle("oculto", soloUna);
+  const botonAnterior = $("#btnFotoAnterior");
+  const botonSiguiente = $("#btnFotoSiguiente");
+  botonAnterior.disabled = soloUna;
+  botonSiguiente.disabled = soloUna;
+  botonAnterior.style.visibility = soloUna ? "hidden" : "";
+  botonSiguiente.style.visibility = soloUna ? "hidden" : "";
   $("#detalleFotoIndicador").textContent = soloUna ? "" : `${indiceFotoDetalle + 1} / ${fotosDetalle.length}`;
   galeria.replaceChildren();
 
