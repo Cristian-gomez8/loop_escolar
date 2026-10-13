@@ -52,6 +52,7 @@ function configurarToggleClave(input, button) {
 }
 
 configurarToggleClave($("#uPass"), $("#toggleUPass"));
+configurarTipoPersona($("#uTipoUsuario"), $("#uCampoNombreEstudiante"), $("#uNombreEstudiante"));
 
 function renderizarListaUsuarios() {
   const ul = $("#listaUsuarios");
@@ -88,6 +89,15 @@ function renderizarListaUsuarios() {
         <div class="edicion-usuario oculto">
           <label>Nombre completo</label>
           <input class="editar-nombre" aria-label="Nombre completo" maxlength="100" autocomplete="name" />
+          <label>Tipo de usuario</label>
+          <select class="editar-tipo-usuario" aria-label="Tipo de usuario">
+            <option value="estudiante">Estudiante</option>
+            <option value="padre_familia">Padre de familia</option>
+          </select>
+          <div class="editar-campo-estudiante oculto">
+            <label>Nombre del estudiante del que es padre de familia</label>
+            <input class="editar-nombre-estudiante" aria-label="Nombre del estudiante a cargo" maxlength="150" />
+          </div>
           <label>Correo electrónico</label>
           <input class="editar-email" aria-label="Correo electrónico" type="email" maxlength="255" autocomplete="email" />
           <label>Nueva contraseña</label>
@@ -103,7 +113,9 @@ function renderizarListaUsuarios() {
           </div>
         </div>`;
       li.querySelector("h2").textContent = u.nombre;
-      li.querySelector(".nota").textContent = u.email;
+      li.querySelector(".nota").textContent = u.tipo_usuario === "padre_familia"
+        ? `${u.email} · Padre de familia de ${u.nombre_estudiante || "estudiante sin especificar"}`
+        : `${u.email} · ${u.tipo_usuario === "estudiante" ? "Estudiante" : "Tipo sin especificar"}`;
       const estado = u.estado_aprobacion || "pendiente";
       const etiquetaEstado = li.querySelector(".estado-aprobacion");
       etiquetaEstado.textContent = estado === "aprobado"
@@ -129,15 +141,21 @@ function renderizarListaUsuarios() {
       sel.onchange = () => cambiarRol(u, sel.value);
       const panel = li.querySelector(".edicion-usuario");
       const nombre = li.querySelector(".editar-nombre");
+      const tipoUsuario = li.querySelector(".editar-tipo-usuario");
+      const campoNombreEstudiante = li.querySelector(".editar-campo-estudiante");
+      const nombreEstudiante = li.querySelector(".editar-nombre-estudiante");
       const email = li.querySelector(".editar-email");
       const clave = li.querySelector(".editar-clave");
       nombre.value = u.nombre || "";
+      tipoUsuario.value = u.tipo_usuario || "estudiante";
+      nombreEstudiante.value = u.nombre_estudiante || "";
+      configurarTipoPersona(tipoUsuario, campoNombreEstudiante, nombreEstudiante);
       email.value = u.email || "";
       configurarToggleClave(clave, li.querySelector(".btn-ver-clave"));
       li.querySelector(".btn-editar-usuario").onclick = () => panel.classList.toggle("oculto");
       li.querySelector(".btn-cancelar-edicion").onclick = () => panel.classList.add("oculto");
       li.querySelector(".acciones-edicion .btn").onclick = () =>
-        guardarPerfilUsuario(u, nombre.value, email.value, clave.value, li.querySelector(".error-edicion"));
+        guardarPerfilUsuario(u, nombre.value, email.value, tipoUsuario.value, nombreEstudiante.value, clave.value, li.querySelector(".error-edicion"));
       li.querySelector(".btn-peligro").onclick = () => eliminarUsuario(u);
       ul.append(li);
     });
@@ -155,9 +173,10 @@ function renderizarListaUsuarios() {
     pintarUsuarios();
   }
 
-async function guardarPerfilUsuario(u, nombre, email, password, errorEl) {
+async function guardarPerfilUsuario(u, nombre, email, tipoUsuario, nombreEstudiante, password, errorEl) {
   nombre = nombre.trim();
   email = email.trim().toLowerCase();
+  nombreEstudiante = nombreEstudiante.trim();
   errorEl.classList.add("oculto");
 
   if (!nombre || !email) {
@@ -165,8 +184,28 @@ async function guardarPerfilUsuario(u, nombre, email, password, errorEl) {
     errorEl.classList.remove("oculto");
     return;
   }
+  if (!tipoUsuario || (tipoUsuario === "padre_familia" && !nombreEstudiante)) {
+    errorEl.textContent = tipoUsuario === "padre_familia"
+      ? "Escribe el nombre del estudiante a cargo."
+      : "Selecciona el tipo de usuario.";
+    errorEl.classList.remove("oculto");
+    return;
+  }
   if (password && password.length < 6) {
     errorEl.textContent = "La nueva contraseña debe tener al menos 6 caracteres.";
+    errorEl.classList.remove("oculto");
+    return;
+  }
+
+  const { error: tipoError } = await supabaseClient
+    .from("usuarios")
+    .update({
+      tipo_usuario: tipoUsuario,
+      nombre_estudiante: tipoUsuario === "padre_familia" ? nombreEstudiante : null
+    })
+    .eq("id", u.id);
+  if (tipoError) {
+    errorEl.textContent = `No se pudo guardar el tipo de usuario: ${tipoError.message}`;
     errorEl.classList.remove("oculto");
     return;
   }
@@ -203,7 +242,7 @@ async function pintarUsuarios() {
     console.warn("No se pudo consultar listar_usuarios_admin; se usarán los perfiles públicos.", error);
     ({ data, error } = await supabaseClient
       .from("usuarios")
-      .select("id, nombre, email, rol, estado_aprobacion, creado_en")
+      .select("id, nombre, email, rol, tipo_usuario, nombre_estudiante, estado_aprobacion, creado_en")
       .order("creado_en", { ascending: false }));
   }
 
@@ -272,12 +311,21 @@ $("#formUsuarioNuevo").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("#usuarioError").classList.add("oculto");
   const nombre = $("#uNombre").value.trim();
+  const tipoUsuario = $("#uTipoUsuario").value;
+  const nombreEstudiante = $("#uNombreEstudiante").value.trim();
   const email  = $("#uEmail").value.trim().toLowerCase();
   const pass   = $("#uPass").value;
   const rol    = $("#uRol").value;
 
   if (!nombre || !email || !pass) {
     $("#usuarioError").textContent = "Completa nombre, correo y contraseña.";
+    $("#usuarioError").classList.remove("oculto");
+    return;
+  }
+  if (!tipoUsuario || (tipoUsuario === "padre_familia" && !nombreEstudiante)) {
+    $("#usuarioError").textContent = tipoUsuario === "padre_familia"
+      ? "Escribe el nombre del estudiante a cargo."
+      : "Selecciona el tipo de usuario.";
     $("#usuarioError").classList.remove("oculto");
     return;
   }
@@ -288,7 +336,15 @@ $("#formUsuarioNuevo").addEventListener("submit", async (e) => {
   }
 
   const { data, error } = await clienteAltas.auth.signUp({
-    email, password: pass, options: { data: { nombre } }
+    email,
+    password: pass,
+    options: {
+      data: {
+        nombre,
+        tipo_usuario: tipoUsuario,
+        nombre_estudiante: tipoUsuario === "padre_familia" ? nombreEstudiante : null
+      }
+    }
   });
   if (error) {
     $("#usuarioError").textContent = "No se pudo crear el usuario: " + error.message;
