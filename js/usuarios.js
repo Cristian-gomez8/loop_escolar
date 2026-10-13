@@ -38,7 +38,7 @@ let usuarios = [];
 // Cuenta cuántos usuarios tienen rol "admin" (para no permitir
 // que la app se quede sin ninguno).
 function contarAdmins() {
-  return usuarios.filter(u => u.rol === "admin").length;
+  return usuarios.filter(u => u.rol === "admin" && u.estado_aprobacion === "aprobado").length;
 }
 
 function configurarToggleClave(input, button) {
@@ -71,7 +71,7 @@ function renderizarListaUsuarios() {
 
   filtrados
     .slice()
-    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+    .sort((a, b) => Number(b.estado_aprobacion === "pendiente") - Number(a.estado_aprobacion === "pendiente") || a.nombre.localeCompare(b.nombre))
     .forEach(u => {
       const li = document.createElement("li");
       li.className = "reserva";
@@ -80,9 +80,11 @@ function renderizarListaUsuarios() {
           <h2 style="margin:0;font-size:1.05rem"></h2>
           <p class="nota" style="margin:.15rem 0 0"></p>
         </div>
+        <span class="estado-aprobacion"></span>
         <select aria-label="Rol del usuario"></select>
         <button class="btn-sec btn-editar-usuario" type="button">Editar perfil</button>
         <button class="btn-peligro" type="button">Eliminar</button>
+        <div class="acciones-aprobacion"></div>
         <div class="edicion-usuario oculto">
           <label>Nombre completo</label>
           <input class="editar-nombre" aria-label="Nombre completo" maxlength="100" autocomplete="name" />
@@ -102,6 +104,26 @@ function renderizarListaUsuarios() {
         </div>`;
       li.querySelector("h2").textContent = u.nombre;
       li.querySelector(".nota").textContent = u.email;
+      const estado = u.estado_aprobacion || "pendiente";
+      const etiquetaEstado = li.querySelector(".estado-aprobacion");
+      etiquetaEstado.textContent = estado === "aprobado"
+        ? "Aprobado"
+        : estado === "rechazado" ? "Rechazado" : "Pendiente de aprobación";
+      etiquetaEstado.classList.add(`estado-${estado}`);
+      if (estado === "pendiente") {
+        const acciones = li.querySelector(".acciones-aprobacion");
+        const aprobar = document.createElement("button");
+        aprobar.type = "button";
+        aprobar.className = "btn";
+        aprobar.textContent = "Aprobar";
+        aprobar.onclick = () => resolverSolicitud(u, "aprobado");
+        const rechazar = document.createElement("button");
+        rechazar.type = "button";
+        rechazar.className = "btn-peligro";
+        rechazar.textContent = "Rechazar";
+        rechazar.onclick = () => resolverSolicitud(u, "rechazado");
+        acciones.append(aprobar, rechazar);
+      }
       const sel = li.querySelector("select");
       ROLES.forEach(r => sel.append(new Option(r, r, false, r === u.rol)));
       sel.onchange = () => cambiarRol(u, sel.value);
@@ -120,6 +142,18 @@ function renderizarListaUsuarios() {
       ul.append(li);
     });
 }
+
+  async function resolverSolicitud(u, estado) {
+    const { error } = await supabaseClient.rpc("resolver_solicitud_usuario", {
+      p_usuario_id: u.id,
+      p_estado: estado
+    });
+    if (error) {
+      alert(`No se pudo ${estado === "aprobado" ? "aprobar" : "rechazar"} la solicitud: ${error.message}`);
+      return;
+    }
+    pintarUsuarios();
+  }
 
 async function guardarPerfilUsuario(u, nombre, email, password, errorEl) {
   nombre = nombre.trim();
@@ -169,7 +203,7 @@ async function pintarUsuarios() {
     console.warn("No se pudo consultar listar_usuarios_admin; se usarán los perfiles públicos.", error);
     ({ data, error } = await supabaseClient
       .from("usuarios")
-      .select("id, nombre, email, rol, creado_en")
+      .select("id, nombre, email, rol, estado_aprobacion, creado_en")
       .order("creado_en", { ascending: false }));
   }
 
@@ -189,7 +223,7 @@ $("#buscarUsuario").addEventListener("input", renderizarListaUsuarios);
 // sistema sin ningún administrador. Si el usuario editado es quien
 // tiene la sesión activa, también actualiza la sesión y la navegación.
 async function cambiarRol(u, nuevoRol) {
-  if (u.rol === "admin" && nuevoRol !== "admin" && contarAdmins() <= 1) {
+  if (u.rol === "admin" && u.estado_aprobacion === "aprobado" && nuevoRol !== "admin" && contarAdmins() <= 1) {
     alert("No se puede quitar el rol de administrador: debe existir al menos un admin.");
     pintarUsuarios();
     return;
@@ -215,7 +249,7 @@ async function eliminarUsuario(u) {
     alert("No puedes eliminar tu propia cuenta mientras tienes la sesión iniciada.");
     return;
   }
-  if (u.rol === "admin" && contarAdmins() <= 1) {
+  if (u.rol === "admin" && u.estado_aprobacion === "aprobado" && contarAdmins() <= 1) {
     alert("No se puede eliminar: debe existir al menos un administrador.");
     return;
   }

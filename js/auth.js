@@ -36,11 +36,21 @@ $("#tabSignup").onclick = () => { modo = "signup"; pintarModo(); };
 async function cargarPerfil(idAuth) {
   const { data, error } = await supabaseClient
     .from("usuarios")
-    .select("id, nombre, email, rol")
+    .select("id, nombre, email, rol, estado_aprobacion")
     .eq("id", idAuth)
     .single();
   if (error) return null;
   return data;
+}
+
+async function bloquearSiNoAprobado(perfil) {
+  if (perfil.estado_aprobacion === "aprobado") return false;
+
+  await supabaseClient.auth.signOut();
+  mensaje(null, perfil.estado_aprobacion === "rechazado"
+    ? "Tu solicitud fue rechazada. Contacta a un administrador."
+    : "Tu cuenta está pendiente de aprobación por un administrador.");
+  return true;
 }
 
 $("#formAuth").addEventListener("submit", async (e) => {
@@ -61,11 +71,11 @@ $("#formAuth").addEventListener("submit", async (e) => {
       });
       if (error) return mensaje(error.message);
       if (!data.session) {
-        // Solo ocurre si "Confirm email" sigue activo en el proyecto.
-        return mensaje(null, "Cuenta creada. Revisa tu correo para confirmarla antes de ingresar.");
+        return mensaje(null, "Cuenta creada. Confirma tu correo si se solicita; después quedará pendiente de aprobación.");
       }
       const perfil = await cargarPerfil(data.user.id);
       if (!perfil) return mensaje("La cuenta se creó pero no se pudo cargar el perfil. Intenta de nuevo.");
+      if (await bloquearSiNoAprobado(perfil)) return;
       iniciarSesion(perfil);
     } else {
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
@@ -75,6 +85,7 @@ $("#formAuth").addEventListener("submit", async (e) => {
         await supabaseClient.auth.signOut();
         return mensaje("Esta cuenta ya no está activa. Contacta a un administrador.");
       }
+      if (await bloquearSiNoAprobado(perfil)) return;
       iniciarSesion(perfil);
     }
   } finally {

@@ -25,6 +25,7 @@ async function restaurarSesion() {
     await supabaseClient.auth.signOut();
     return;
   }
+  if (await bloquearSiNoAprobado(perfil)) return;
   sesion = { id: perfil.id, nombre: perfil.nombre, email: perfil.email, rol: perfil.rol };
 }
 

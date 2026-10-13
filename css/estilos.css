@@ -670,6 +670,22 @@ input:focus, select:focus, textarea:focus {
   cursor: pointer;
 }
 .reserva select { width: auto; margin: 0; }
+.estado-aprobacion {
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.estado-pendiente { color: #8a5b00; background: #fff4d6; }
+.estado-aprobado { color: #1f6b3b; background: #e7f5eb; }
+.estado-rechazado { color: #a52a2a; background: #fdeaea; }
+.acciones-aprobacion {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
 
 /* ---------- Tablas de prendas ---------- */
 /* Contenedor desplazable para conservar todas las columnas en móvil. */
