@@ -57,7 +57,7 @@ function renderizarListaUsuarios() {
   const ul = $("#listaUsuarios");
   const busqueda = $("#buscarUsuario").value.trim().toLocaleLowerCase();
   const filtrados = usuarios.filter(u =>
-    `${u.nombre} ${u.email} ${u.tarjeta_identidad || ""}`.toLocaleLowerCase().includes(busqueda)
+    `${u.nombre} ${u.email}`.toLocaleLowerCase().includes(busqueda)
   );
 
   ul.innerHTML = "";
@@ -86,8 +86,6 @@ function renderizarListaUsuarios() {
         <div class="edicion-usuario oculto">
           <label>Nombre completo</label>
           <input class="editar-nombre" aria-label="Nombre completo" maxlength="100" autocomplete="name" />
-          <label>Tarjeta de identidad</label>
-          <input class="editar-identidad" aria-label="Tarjeta de identidad" type="text" inputmode="numeric" pattern="[0-9]{1,20}" maxlength="20" />
           <label>Correo electrónico</label>
           <input class="editar-email" aria-label="Correo electrónico" type="email" maxlength="255" autocomplete="email" />
           <label>Nueva contraseña</label>
@@ -103,41 +101,33 @@ function renderizarListaUsuarios() {
           </div>
         </div>`;
       li.querySelector("h2").textContent = u.nombre;
-      li.querySelector(".nota").textContent = `${u.email} · Tarjeta de identidad: ${u.tarjeta_identidad || "Sin asignar"}`;
+      li.querySelector(".nota").textContent = u.email;
       const sel = li.querySelector("select");
       ROLES.forEach(r => sel.append(new Option(r, r, false, r === u.rol)));
       sel.onchange = () => cambiarRol(u, sel.value);
       const panel = li.querySelector(".edicion-usuario");
       const nombre = li.querySelector(".editar-nombre");
-      const identidad = li.querySelector(".editar-identidad");
       const email = li.querySelector(".editar-email");
       const clave = li.querySelector(".editar-clave");
       nombre.value = u.nombre || "";
-      identidad.value = u.tarjeta_identidad || "";
       email.value = u.email || "";
       configurarToggleClave(clave, li.querySelector(".btn-ver-clave"));
       li.querySelector(".btn-editar-usuario").onclick = () => panel.classList.toggle("oculto");
       li.querySelector(".btn-cancelar-edicion").onclick = () => panel.classList.add("oculto");
       li.querySelector(".acciones-edicion .btn").onclick = () =>
-        guardarPerfilUsuario(u, nombre.value, identidad.value, email.value, clave.value, li.querySelector(".error-edicion"));
+        guardarPerfilUsuario(u, nombre.value, email.value, clave.value, li.querySelector(".error-edicion"));
       li.querySelector(".btn-peligro").onclick = () => eliminarUsuario(u);
       ul.append(li);
     });
 }
 
-async function guardarPerfilUsuario(u, nombre, tarjetaIdentidad, email, password, errorEl) {
+async function guardarPerfilUsuario(u, nombre, email, password, errorEl) {
   nombre = nombre.trim();
-  tarjetaIdentidad = tarjetaIdentidad.trim();
   email = email.trim().toLowerCase();
   errorEl.classList.add("oculto");
 
-  if (!nombre || !tarjetaIdentidad || !email) {
-    errorEl.textContent = "Completa el nombre, la tarjeta de identidad y el correo electrónico.";
-    errorEl.classList.remove("oculto");
-    return;
-  }
-  if (!/^[0-9]{1,20}$/.test(tarjetaIdentidad)) {
-    errorEl.textContent = "Escribe una tarjeta de identidad válida.";
+  if (!nombre || !email) {
+    errorEl.textContent = "Completa el nombre y el correo electrónico.";
     errorEl.classList.remove("oculto");
     return;
   }
@@ -147,7 +137,7 @@ async function guardarPerfilUsuario(u, nombre, tarjetaIdentidad, email, password
     return;
   }
 
-  const cambios = { usuarioId: u.id, nombre, email, tarjetaIdentidad };
+  const cambios = { usuarioId: u.id, nombre, email };
   if (password) cambios.password = password;
   const { error } = await supabaseClient.functions.invoke("editar_usuario_admin", { body: cambios });
   if (error) {
@@ -159,16 +149,6 @@ async function guardarPerfilUsuario(u, nombre, tarjetaIdentidad, email, password
       } catch {}
     }
     errorEl.textContent = `No se pudo guardar el perfil: ${detalle}`;
-    errorEl.classList.remove("oculto");
-    return;
-  }
-
-  const { error: identidadError } = await supabaseClient
-    .from("usuarios")
-    .update({ tarjeta_identidad: tarjetaIdentidad })
-    .eq("id", u.id);
-  if (identidadError) {
-    errorEl.textContent = `No se pudo guardar la tarjeta de identidad: ${identidadError.message}`;
     errorEl.classList.remove("oculto");
     return;
   }
@@ -189,7 +169,7 @@ async function pintarUsuarios() {
     console.warn("No se pudo consultar listar_usuarios_admin; se usarán los perfiles públicos.", error);
     ({ data, error } = await supabaseClient
       .from("usuarios")
-      .select("id, nombre, email, tarjeta_identidad, rol, creado_en")
+      .select("id, nombre, email, rol, creado_en")
       .order("creado_en", { ascending: false }));
   }
 
@@ -258,18 +238,12 @@ $("#formUsuarioNuevo").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("#usuarioError").classList.add("oculto");
   const nombre = $("#uNombre").value.trim();
-  const tarjetaIdentidad = $("#uIdentidad").value.trim();
   const email  = $("#uEmail").value.trim().toLowerCase();
   const pass   = $("#uPass").value;
   const rol    = $("#uRol").value;
 
-  if (!nombre || !tarjetaIdentidad || !email || !pass) {
-    $("#usuarioError").textContent = "Completa nombre, tarjeta de identidad, correo y contraseña.";
-    $("#usuarioError").classList.remove("oculto");
-    return;
-  }
-  if (!/^[0-9]{1,20}$/.test(tarjetaIdentidad)) {
-    $("#usuarioError").textContent = "Escribe una tarjeta de identidad válida.";
+  if (!nombre || !email || !pass) {
+    $("#usuarioError").textContent = "Completa nombre, correo y contraseña.";
     $("#usuarioError").classList.remove("oculto");
     return;
   }
@@ -280,7 +254,7 @@ $("#formUsuarioNuevo").addEventListener("submit", async (e) => {
   }
 
   const { data, error } = await clienteAltas.auth.signUp({
-    email, password: pass, options: { data: { nombre, tarjeta_identidad: tarjetaIdentidad } }
+    email, password: pass, options: { data: { nombre } }
   });
   if (error) {
     $("#usuarioError").textContent = "No se pudo crear el usuario: " + error.message;

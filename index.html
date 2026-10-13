@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="css/estilos.css" />
 </head>
 <body>
-<!-- ================= PANTALLA DE INGRESO ================= -->
+<!-- ================= PANTALLA DE REGISTRO / INGRESO ================= -->
 <!-- Visible solo cuando no hay sesión activa (ver auth.js / app.js). -->
 <main id="pantallaAuth">
   <div class="contenedor auth">
@@ -23,11 +23,20 @@
     </section>
 
     <section class="tarjeta">
-      <!-- Formulario de ingreso; las cuentas se administran desde el panel. -->
+      <div class="tabs">
+        <button type="button" id="tabLogin" class="activo">Ingresar</button>
+        <button type="button" id="tabSignup">Crear cuenta</button>
+      </div>
+      <!-- Un mismo formulario sirve para ingresar y para registrarse; auth.js
+           alterna qué campos exige y qué hace al enviarlo según "modo". -->
       <form id="formAuth" novalidate>
-        <label for="identidad">Tarjeta de identidad</label>
-        <input id="identidad" type="text" inputmode="numeric" pattern="[0-9]{1,20}" maxlength="20" required autocomplete="username" />
-           <label for="password">Clave</label>
+        <div id="campoNombre" class="oculto">
+          <label for="nombre">Nombre completo</label>
+          <input id="nombre" maxlength="100" autocomplete="name" />
+        </div>
+        <label for="email">Correo electrónico</label>
+        <input id="email" type="email" maxlength="255" required autocomplete="email" />
+       <label for="password">Contraseña</label>
 <div class="input-con-toggle">
   <input id="password" type="password" minlength="6" required autocomplete="current-password" />
   <button type="button" id="togglePassword" class="btn-toggle-password" aria-label="Mostrar contraseña">
@@ -45,6 +54,7 @@
 </button>
 </div>
         <p id="authError" class="error oculto"></p>
+        <p id="authOk" class="ok oculto"></p>
         <button class="btn" type="submit" id="btnAuth">Ingresar</button>
       </form>
     </section>
@@ -226,8 +236,6 @@
       <form class="tarjeta" id="formUsuarioNuevo" style="margin-top:1.25rem">
         <label for="uNombre">Nombre completo</label>
         <input id="uNombre" maxlength="100" />
-        <label for="uIdentidad">Tarjeta de identidad</label>
-        <input id="uIdentidad" type="text" inputmode="numeric" pattern="[0-9]{1,20}" maxlength="20" />
         <label for="uEmail">Correo electrónico</label>
         <input id="uEmail" type="email" maxlength="255" />
         <label for="uPass">Contraseña</label>
