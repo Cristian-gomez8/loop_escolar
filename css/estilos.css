@@ -357,6 +357,7 @@ input:focus, select:focus, textarea:focus {
   width: 100%;
   padding-right: 2.8rem;
 }
+.input-con-toggle .btn-ver-clave + input { padding-right: 5.5rem; }
 .btn-toggle-password {
   /* Botón que alterna entre mostrar y ocultar la contraseña. */
   position: absolute;
@@ -384,6 +385,33 @@ input:focus, select:focus, textarea:focus {
 .btn-toggle-password .icono-mostrar { display: block; }
 .btn-toggle-password.mostrar-password .icono-mostrar { display: none; }
 .btn-toggle-password.mostrar-password .icono-ocultar { display: block; }
+.btn-ver-clave {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  border: 0;
+  padding: 0.25rem;
+  background: transparent;
+  color: var(--verde-osc);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.edicion-usuario {
+  flex-basis: 100%;
+  border-top: 1px solid var(--borde);
+  padding-top: 0.75rem;
+}
+.edicion-usuario .acciones-edicion {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+.edicion-usuario .acciones-edicion button { width: auto; margin: 0; }
 
 /* Ocultar pantalla de login */
 #pantallaAuth.oculto,

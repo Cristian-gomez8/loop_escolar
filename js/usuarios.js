@@ -41,30 +41,35 @@ function contarAdmins() {
   return usuarios.filter(u => u.rol === "admin").length;
 }
 
-// Trae las cuentas reales de Authentication junto con sus perfiles.
-// La RPC también incluye cuentas cuyo perfil público aún no exista.
-async function pintarUsuarios() {
-  let { data, error } = await supabaseClient.rpc("listar_usuarios_admin");
-  if (error) {
-    console.warn("No se pudo consultar listar_usuarios_admin; se usarán los perfiles públicos.", error);
-    ({ data, error } = await supabaseClient
-      .from("usuarios")
-      .select("id, nombre, email, rol, creado_en")
-      .order("creado_en", { ascending: false }));
-  }
+function configurarToggleClave(input, button) {
+  button.addEventListener("click", () => {
+    const mostrar = input.type === "password";
+    input.type = mostrar ? "text" : "password";
+    button.textContent = mostrar ? "Ocultar" : "Mostrar";
+    button.setAttribute("aria-label", `${mostrar ? "Ocultar" : "Mostrar"} contraseña`);
+    button.setAttribute("aria-pressed", String(mostrar));
+  });
+}
 
+configurarToggleClave($("#uPass"), $("#toggleUPass"));
+
+function renderizarListaUsuarios() {
   const ul = $("#listaUsuarios");
+  const busqueda = $("#buscarUsuario").value.trim().toLocaleLowerCase();
+  const filtrados = usuarios.filter(u =>
+    `${u.nombre} ${u.email} ${u.tarjeta_identidad || ""}`.toLocaleLowerCase().includes(busqueda)
+  );
+
   ul.innerHTML = "";
-  if (error) {
-    console.error(error);
-    $("#vacioUsuarios").textContent = `No se pudo cargar la lista de usuarios: ${error.message}`;
-    return;
+  if (!usuarios.length) {
+    $("#vacioUsuarios").textContent = "No hay usuarios registrados.";
+  } else if (!filtrados.length) {
+    $("#vacioUsuarios").textContent = "No se encontraron usuarios.";
+  } else {
+    $("#vacioUsuarios").textContent = "";
   }
-  usuarios = data || [];
 
-  $("#vacioUsuarios").textContent = usuarios.length ? "" : "No hay usuarios registrados.";
-
-  usuarios
+  filtrados
     .slice()
     .sort((a, b) => a.nombre.localeCompare(b.nombre))
     .forEach(u => {
@@ -75,17 +80,130 @@ async function pintarUsuarios() {
           <h2 style="margin:0;font-size:1.05rem"></h2>
           <p class="nota" style="margin:.15rem 0 0"></p>
         </div>
-        <select aria-label="Rol de ${u.nombre}"></select>
-        <button class="btn-peligro">Eliminar</button>`;
+        <select aria-label="Rol del usuario"></select>
+        <button class="btn-sec btn-editar-usuario" type="button">Editar perfil</button>
+        <button class="btn-peligro" type="button">Eliminar</button>
+        <div class="edicion-usuario oculto">
+          <label>Nombre completo</label>
+          <input class="editar-nombre" aria-label="Nombre completo" maxlength="100" autocomplete="name" />
+          <label>Tarjeta de identidad</label>
+          <input class="editar-identidad" aria-label="Tarjeta de identidad" type="text" inputmode="numeric" pattern="[0-9]{1,20}" maxlength="20" />
+          <label>Correo electrónico</label>
+          <input class="editar-email" aria-label="Correo electrónico" type="email" maxlength="255" autocomplete="email" />
+          <label>Nueva contraseña</label>
+          <div class="input-con-toggle">
+            <button type="button" class="btn-ver-clave" aria-label="Mostrar nueva contraseña" aria-pressed="false">Mostrar</button>
+            <input class="editar-clave" aria-label="Nueva contraseña" type="password" minlength="6" autocomplete="new-password" />
+          </div>
+          <p class="nota">Deja la contraseña en blanco si no quieres cambiarla.</p>
+          <p class="error error-edicion oculto"></p>
+          <div class="acciones-edicion">
+            <button class="btn" type="button">Guardar cambios</button>
+            <button class="btn-sec btn-cancelar-edicion" type="button">Cancelar</button>
+          </div>
+        </div>`;
       li.querySelector("h2").textContent = u.nombre;
-      li.querySelector(".nota").textContent = u.email;
+      li.querySelector(".nota").textContent = `${u.email} · Tarjeta de identidad: ${u.tarjeta_identidad || "Sin asignar"}`;
       const sel = li.querySelector("select");
       ROLES.forEach(r => sel.append(new Option(r, r, false, r === u.rol)));
       sel.onchange = () => cambiarRol(u, sel.value);
-      li.querySelector("button").onclick = () => eliminarUsuario(u);
+      const panel = li.querySelector(".edicion-usuario");
+      const nombre = li.querySelector(".editar-nombre");
+      const identidad = li.querySelector(".editar-identidad");
+      const email = li.querySelector(".editar-email");
+      const clave = li.querySelector(".editar-clave");
+      nombre.value = u.nombre || "";
+      identidad.value = u.tarjeta_identidad || "";
+      email.value = u.email || "";
+      configurarToggleClave(clave, li.querySelector(".btn-ver-clave"));
+      li.querySelector(".btn-editar-usuario").onclick = () => panel.classList.toggle("oculto");
+      li.querySelector(".btn-cancelar-edicion").onclick = () => panel.classList.add("oculto");
+      li.querySelector(".acciones-edicion .btn").onclick = () =>
+        guardarPerfilUsuario(u, nombre.value, identidad.value, email.value, clave.value, li.querySelector(".error-edicion"));
+      li.querySelector(".btn-peligro").onclick = () => eliminarUsuario(u);
       ul.append(li);
     });
 }
+
+async function guardarPerfilUsuario(u, nombre, tarjetaIdentidad, email, password, errorEl) {
+  nombre = nombre.trim();
+  tarjetaIdentidad = tarjetaIdentidad.trim();
+  email = email.trim().toLowerCase();
+  errorEl.classList.add("oculto");
+
+  if (!nombre || !tarjetaIdentidad || !email) {
+    errorEl.textContent = "Completa el nombre, la tarjeta de identidad y el correo electrónico.";
+    errorEl.classList.remove("oculto");
+    return;
+  }
+  if (!/^[0-9]{1,20}$/.test(tarjetaIdentidad)) {
+    errorEl.textContent = "Escribe una tarjeta de identidad válida.";
+    errorEl.classList.remove("oculto");
+    return;
+  }
+  if (password && password.length < 6) {
+    errorEl.textContent = "La nueva contraseña debe tener al menos 6 caracteres.";
+    errorEl.classList.remove("oculto");
+    return;
+  }
+
+  const cambios = { usuarioId: u.id, nombre, email, tarjetaIdentidad };
+  if (password) cambios.password = password;
+  const { error } = await supabaseClient.functions.invoke("editar_usuario_admin", { body: cambios });
+  if (error) {
+    let detalle = error.message;
+    if (error.context && typeof error.context.clone === "function") {
+      try {
+        const respuesta = await error.context.clone().json();
+        if (respuesta.error) detalle = respuesta.error;
+      } catch {}
+    }
+    errorEl.textContent = `No se pudo guardar el perfil: ${detalle}`;
+    errorEl.classList.remove("oculto");
+    return;
+  }
+
+  const { error: identidadError } = await supabaseClient
+    .from("usuarios")
+    .update({ tarjeta_identidad: tarjetaIdentidad })
+    .eq("id", u.id);
+  if (identidadError) {
+    errorEl.textContent = `No se pudo guardar la tarjeta de identidad: ${identidadError.message}`;
+    errorEl.classList.remove("oculto");
+    return;
+  }
+
+  if (sesion && sesion.id === u.id) {
+    sesion.nombre = nombre;
+    sesion.email = email;
+    actualizarNavPorRol();
+  }
+  pintarUsuarios();
+}
+
+// Trae las cuentas reales de Authentication junto con sus perfiles.
+// La RPC también incluye cuentas cuyo perfil público aún no exista.
+async function pintarUsuarios() {
+  let { data, error } = await supabaseClient.rpc("listar_usuarios_admin");
+  if (error) {
+    console.warn("No se pudo consultar listar_usuarios_admin; se usarán los perfiles públicos.", error);
+    ({ data, error } = await supabaseClient
+      .from("usuarios")
+      .select("id, nombre, email, tarjeta_identidad, rol, creado_en")
+      .order("creado_en", { ascending: false }));
+  }
+
+  if (error) {
+    $("#listaUsuarios").innerHTML = "";
+    console.error(error);
+    $("#vacioUsuarios").textContent = `No se pudo cargar la lista de usuarios: ${error.message}`;
+    return;
+  }
+  usuarios = data || [];
+  renderizarListaUsuarios();
+}
+
+$("#buscarUsuario").addEventListener("input", renderizarListaUsuarios);
 
 // Cambia el rol de un usuario. Bloquea la operación si dejaría al
 // sistema sin ningún administrador. Si el usuario editado es quien
@@ -140,12 +258,18 @@ $("#formUsuarioNuevo").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("#usuarioError").classList.add("oculto");
   const nombre = $("#uNombre").value.trim();
+  const tarjetaIdentidad = $("#uIdentidad").value.trim();
   const email  = $("#uEmail").value.trim().toLowerCase();
   const pass   = $("#uPass").value;
   const rol    = $("#uRol").value;
 
-  if (!nombre || !email || !pass) {
-    $("#usuarioError").textContent = "Completa nombre, correo y contraseña.";
+  if (!nombre || !tarjetaIdentidad || !email || !pass) {
+    $("#usuarioError").textContent = "Completa nombre, tarjeta de identidad, correo y contraseña.";
+    $("#usuarioError").classList.remove("oculto");
+    return;
+  }
+  if (!/^[0-9]{1,20}$/.test(tarjetaIdentidad)) {
+    $("#usuarioError").textContent = "Escribe una tarjeta de identidad válida.";
     $("#usuarioError").classList.remove("oculto");
     return;
   }
@@ -156,7 +280,7 @@ $("#formUsuarioNuevo").addEventListener("submit", async (e) => {
   }
 
   const { data, error } = await clienteAltas.auth.signUp({
-    email, password: pass, options: { data: { nombre } }
+    email, password: pass, options: { data: { nombre, tarjeta_identidad: tarjetaIdentidad } }
   });
   if (error) {
     $("#usuarioError").textContent = "No se pudo crear el usuario: " + error.message;
