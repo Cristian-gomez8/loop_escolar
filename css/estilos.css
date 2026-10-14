@@ -21,7 +21,12 @@
 /* Estilos base de la página: elimina el margen y define la tipografía. */
 body {
   margin: 0;
-  background: var(--fondo);
+  background-color: var(--fondo);
+  background-image: url("../fondo.png");
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: var(--texto);
   font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
 }
@@ -165,7 +170,7 @@ html, body {
   /* Panel izquierdo con la identidad visual de Loop Escolar. */
   flex: 1 1 50% !important;
   width: 50% !important;
-  background: linear-gradient(160deg, #1f5c39 0%, #2e7d4f 55%, #4caf70 100%) !important;
+  background: linear-gradient(160deg, rgba(31, 92, 57, 0.76) 0%, rgba(46, 125, 79, 0.7) 55%, rgba(76, 175, 112, 0.72) 100%) !important;
   color: white !important;
   display: flex !important;
   flex-direction: column !important;
@@ -268,6 +273,11 @@ html, body {
   border-radius: 0 !important;
   box-sizing: border-box !important;
   min-height: 100vh !important;
+}
+
+#pantallaAuth .tarjeta {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(4px);
 }
 
 .tarjeta .tabs,

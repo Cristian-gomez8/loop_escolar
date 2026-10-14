@@ -4,7 +4,7 @@
    ========================================================= */
 
 // Tipos de prenda disponibles para donar/filtrar en el catálogo.
-const TIPOS = ["Camibuso", "Camisa", "Sudadera", "Pantalón", "Falda", "Chaqueta", "Zapatos"];
+const TIPOS = ["Delantal", "Camisas Hombres diario","Camisa De Ed Fisica","Camisas mujeres diario", "Sudadera", "Pantalón", "Falda", "Chaqueta", "Zapatos"];
 
 // Tallas disponibles para donar/filtrar en el catálogo.
 const TALLAS = ["talla indefinida","6", "8", "10", "12", "14", "16", "18", "20", "22", "24","26","28","30","32","34","36", "38", "40","42"];
