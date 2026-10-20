@@ -237,12 +237,16 @@ async function guardarPerfilUsuario(u, nombre, email, tipoUsuario, nombreEstudia
 // La RPC también incluye cuentas cuyo perfil público aún no exista.
 async function pintarUsuarios() {
   let { data, error } = await supabaseClient.rpc("listar_usuarios_admin");
-  if (error) {
-    console.warn("No se pudo consultar listar_usuarios_admin; se usarán los perfiles públicos.", error);
-    ({ data, error } = await supabaseClient
+  if (error || !data?.length) {
+    if (error) {
+      console.warn("No se pudo consultar listar_usuarios_admin; se usarán los perfiles públicos.", error);
+    }
+    const respaldo = await supabaseClient
       .from("usuarios")
-      .select("id, nombre, email, rol, tipo_usuario, nombre_estudiante, estado_aprobacion, creado_en")
-      .order("creado_en", { ascending: false }));
+      .select("*")
+      .order("creado_en", { ascending: false });
+    data = respaldo.data;
+    error = respaldo.error;
   }
 
   if (error) {

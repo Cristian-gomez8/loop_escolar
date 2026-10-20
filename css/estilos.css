@@ -168,8 +168,8 @@ html, body {
 /* Lado izquierdo */
 .hero {
   /* Panel izquierdo con la identidad visual de Loop Escolar. */
-  flex: 1 1 50% !important;
-  width: 50% !important;
+  flex: 0 0 60% !important;
+  width: 60% !important;
   background: linear-gradient(160deg, rgba(31, 92, 57, 0.76) 0%, rgba(46, 125, 79, 0.7) 55%, rgba(76, 175, 112, 0.72) 100%) !important;
   color: white !important;
   display: flex !important;
@@ -276,8 +276,17 @@ html, body {
 }
 
 #pantallaAuth .tarjeta {
-  background: rgba(255, 255, 255, 0.88) !important;
-  backdrop-filter: blur(4px);
+  flex: 0 0 40% !important;
+  width: 40% !important;
+  max-width: none !important;
+  min-height: 100vh !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 2rem !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background: #fff !important;
 }
 
 .tarjeta .tabs,
@@ -450,6 +459,17 @@ input:focus, select:focus, textarea:focus {
     flex: none !important;
     min-height: auto !important;
     padding: 2.5rem 1.5rem !important;
+  }
+  #pantallaAuth .tarjeta {
+    width: 100% !important;
+    max-width: none !important;
+    flex: none !important;
+    margin: 0 !important;
+    padding: 2rem 1.5rem !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: #fff !important;
   }
   .hero {
     align-items: center !important;
