@@ -49,6 +49,14 @@ async function pintarCatalogo() {
       galeria.append(imagen);
     }
     li.querySelector(".btn-ver-prenda").onclick = () => abrirDetallePrenda(p);
+    if (sesion && sesion.rol === "admin") {
+      const botonEditar = document.createElement("button");
+      botonEditar.className = "btn-sec btn-editar-catalogo";
+      botonEditar.type = "button";
+      botonEditar.textContent = "Editar prenda";
+      botonEditar.onclick = () => abrirEditorPrenda(p);
+      li.append(botonEditar);
+    }
     ul.append(li);
   });
 }

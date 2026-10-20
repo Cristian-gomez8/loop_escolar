@@ -74,7 +74,7 @@ async function pintarInventario() {
 }
 
 let imagenEdicion = null;
-let donacionEdicion = null;
+let prendaEdicion = null;
 
 $("#editarImagen").addEventListener("change", async (e) => {
   const archivo = e.target.files[0];
@@ -146,7 +146,7 @@ async function pintarPendientes() {
       const botonEditar = document.createElement("button");
       botonEditar.className = "btn-sec";
       botonEditar.textContent = "Editar";
-      botonEditar.onclick = () => abrirEditorDonacion(p);
+      botonEditar.onclick = () => abrirEditorPrenda(p);
       cAcciones.append(botonEditar);
     }
     const botonRechazar = document.createElement("button");
@@ -158,11 +158,12 @@ async function pintarPendientes() {
   });
 }
 
-function abrirEditorDonacion(p) {
-  if (!sesion || sesion.rol !== "admin") return;
-  donacionEdicion = p;
+function abrirEditorPrenda(p) {
+  if (!sesion || sesion.rol !== "admin" || !["pendiente", "disponible"].includes(p.estado)) return;
+  prendaEdicion = p;
   imagenEdicion = null;
   $("#formEditarDonacion").reset();
+  $("#tituloEditarDonacion").textContent = p.estado === "pendiente" ? "Editar donación pendiente" : "Editar prenda del catálogo";
   $("#editarTipo").value = p.tipo;
   $("#editarTalla").value = p.talla;
   $("#editarDefectos").value = p.defectos || "";
@@ -182,11 +183,12 @@ function mostrarErrorEdicion(mensaje) {
 
 async function guardarEdicionDonacion(e) {
   e.preventDefault();
-  if (!sesion || sesion.rol !== "admin" || !donacionEdicion) return;
+  if (!sesion || sesion.rol !== "admin" || !prendaEdicion) return;
 
   const botonGuardar = $("#formEditarDonacion button[type=submit]");
   const cambiarImagen = Boolean(imagenEdicion) || $("#editarQuitarImagen").checked;
-  const fotosAnteriores = obtenerFotosPrenda(donacionEdicion);
+  const fotosAnteriores = obtenerFotosPrenda(prendaEdicion);
+  const estadoEsperado = prendaEdicion.estado;
   let nuevaImagenUrl = null;
   let guardado = false;
   botonGuardar.disabled = true;
@@ -209,10 +211,10 @@ async function guardarEdicionDonacion(e) {
     }
 
     const { data, error } = await supabaseClient.from("prendas")
-      .update(cambios).eq("id", donacionEdicion.id).eq("estado", "pendiente").select("id");
+      .update(cambios).eq("id", prendaEdicion.id).eq("estado", estadoEsperado).select("id");
     if (error || !data.length) {
       if (nuevaImagenUrl) await borrarImagenPrenda(nuevaImagenUrl);
-      mostrarErrorEdicion(error ? "No se pudieron guardar los cambios: " + error.message : "La donación ya no está pendiente.");
+      mostrarErrorEdicion(error ? "No se pudieron guardar los cambios: " + error.message : "La prenda ya no está disponible para editar.");
       return;
     }
 
@@ -221,8 +223,9 @@ async function guardarEdicionDonacion(e) {
       await Promise.all([...new Set(fotosAnteriores)].map(borrarImagenPrenda));
     }
     $("#dialogEditarDonacion").close();
-    donacionEdicion = null;
-    await pintarPendientes();
+    prendaEdicion = null;
+    if (estadoEsperado === "pendiente") await pintarPendientes();
+    else await pintarCatalogo();
   } catch (error) {
     if (nuevaImagenUrl && !guardado) await borrarImagenPrenda(nuevaImagenUrl);
     mostrarErrorEdicion("No se pudieron guardar los cambios: " + error.message);
