@@ -1,9 +1,8 @@
 /* =========================================================
    dashboard.js — Estadísticas de donaciones (rol "almacen"/"admin").
-   Dos gráficas SVG dibujadas a mano (sin librerías) — prendas más
-   ofertadas por tipo (barras) y donaciones en el tiempo (línea) — más
-   una tabla con las reservas realizadas (quién reservó qué prenda).
-   Los filtros de tipo/talla aplican por igual a las gráficas y a la tabla.
+   Gráficas SVG dibujadas a mano (sin librerías) de donaciones,
+   reservas por tipo/talla y participación de donantes y reservadores.
+   Los filtros de tipo/talla aplican a todas las gráficas.
    Las gráficas cuentan TODAS las donaciones sin importar su estado
    (pendiente, disponible, reservada o rechazada): el dashboard mide
    la participación total de la comunidad, no solo lo ya aprobado.
@@ -75,13 +74,62 @@ function fechaColombia(fecha) {
 // donadas (cualquier estado: el dashboard mide participación total).
 async function datosFiltrados() {
   const tipo = $("#dashTipo").value, talla = $("#dashTalla").value;
-  let query = supabaseClient.from("prendas").select("id, tipo, talla, creada")
+  let query = supabaseClient.from("prendas")
+    .select("id, tipo, talla, creada, donante_id, donante:usuarios(nombre)")
     .order("creada", { ascending: true });
   if (tipo) query = query.eq("tipo", tipo);
   if (talla) query = query.eq("talla", talla);
   const { data, error } = await query;
-  if (error) { console.error(error); return []; }
+  if (error) {
+    console.error("No se pudieron cargar las prendas para el dashboard:", error);
+    return null;
+  }
   return data;
+}
+
+async function datosReservasFiltrados() {
+  let query = supabaseClient.from("reservas")
+    .select("usuario_id, usuario:usuarios(nombre), prenda:prendas(tipo,talla)")
+    .order("creada", { ascending: true });
+  const tipo = $("#dashTipo").value, talla = $("#dashTalla").value;
+  if (tipo) query = query.eq("prenda.tipo", tipo);
+  if (talla) query = query.eq("prenda.talla", talla);
+  const { data, error } = await query;
+  if (error) {
+    console.error("No se pudieron cargar las reservas para el dashboard:", error);
+    return null;
+  }
+  return data.filter(r => r.prenda);
+}
+
+function contarPorParticipante(lista, idCampo, relacion) {
+  const conteos = new Map();
+  lista.forEach(registro => {
+    const id = registro[idCampo];
+    if (!id) return;
+    const nombre = registro[relacion] && registro[relacion].nombre
+      ? registro[relacion].nombre
+      : "Usuario";
+    const existente = conteos.get(id);
+    if (existente) existente.valor++;
+    else conteos.set(id, { etiqueta: nombre, valor: 1 });
+  });
+  return [...conteos.values()]
+    .sort((a, b) => b.valor - a.valor || a.etiqueta.localeCompare(b.etiqueta, "es"))
+    .slice(0, 5);
+}
+
+function contarReservasPorPrenda(lista) {
+  const conteos = new Map();
+  lista.forEach(reserva => {
+    const prenda = reserva.prenda;
+    const etiqueta = `${prenda.tipo} · Talla ${prenda.talla}`;
+    conteos.set(etiqueta, (conteos.get(etiqueta) || 0) + 1);
+  });
+  return [...conteos.entries()]
+    .map(([etiqueta, valor]) => ({ etiqueta, valor }))
+    .sort((a, b) => b.valor - a.valor || a.etiqueta.localeCompare(b.etiqueta, "es"))
+    .slice(0, 10);
 }
 
 // Cuenta cuántas prendas hay de cada tipo, de mayor a menor (para "más ofertadas").
@@ -105,7 +153,7 @@ function contarPorFecha(lista) {
 
 // Dibuja la gráfica de barras "prendas más ofertadas por tipo" dentro de contenedor.
 // datos: [{ etiqueta, valor }], ya ordenados de mayor a menor.
-function dibujarBarras(contenedor, datos) {
+function dibujarBarras(contenedor, datos, ariaLabel = "Prendas donadas por tipo") {
   const alto = GRAF_ALTO - GRAF_MARGEN.arriba - GRAF_MARGEN.abajo;
   const ancho = GRAF_ANCHO - GRAF_MARGEN.izquierda - GRAF_MARGEN.derecha;
   const maximo = Math.max(...datos.map(d => d.valor), 0);
@@ -113,7 +161,7 @@ function dibujarBarras(contenedor, datos) {
 
   const svg = crearSVGEl("svg", {
     viewBox: `0 0 ${GRAF_ANCHO} ${GRAF_ALTO}`, width: "100%",
-    role: "img", "aria-label": "Prendas donadas por tipo"
+    role: "img", "aria-label": ariaLabel
   });
 
   // Grilla horizontal recesiva + valores del eje Y.
@@ -158,7 +206,12 @@ function dibujarBarras(contenedor, datos) {
       x: x + anchoBarra / 2, y: GRAF_MARGEN.arriba + alto + 18, "text-anchor": "middle",
       "font-size": 11, fill: COLOR_TEXTO_SUAVE
     });
-    etiquetaX.textContent = d.etiqueta;
+    etiquetaX.textContent = d.etiqueta.length > 18 ? d.etiqueta.slice(0, 15) + "..." : d.etiqueta;
+    if (etiquetaX.textContent !== d.etiqueta) {
+      const tituloEtiqueta = crearSVGEl("title", {});
+      tituloEtiqueta.textContent = d.etiqueta;
+      etiquetaX.append(tituloEtiqueta);
+    }
     svg.append(etiquetaX);
   });
 
@@ -273,8 +326,7 @@ function dibujarLinea(contenedor, datos) {
 function construirFilaReserva(r, alCambiarEstado) {
   const prenda = r.prenda;
   const usuario = r.usuario;
-  const fecha = new Date(r.fecha_entrega + "T00:00:00")
-    .toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
+  const fecha = formatearCitaReserva(r) || "Pendiente de asignación";
   const entregado = prenda && prenda.estado === "entregado";
 
   const fila = document.createElement("tr");
@@ -363,17 +415,53 @@ async function pintarTablaReservas(idsPrendasFiltradas) {
 // y la tabla de reservas. Se llama al entrar a la vista "dashboard" y
 // cada vez que cambia un filtro.
 async function pintarDashboard() {
-  const lista = await datosFiltrados();
+  const [resultadoPrendas, reservas] = await Promise.all([
+    datosFiltrados(),
+    datosReservasFiltrados()
+  ]);
+  const errorPrendas = resultadoPrendas === null;
+  const lista = resultadoPrendas || [];
   const hayDatos = lista.length > 0;
   const mensaje = "No hay donaciones que coincidan con estos filtros.";
+  const mensajeErrorPrendas = "No se pudieron cargar las prendas. Intenta actualizar el dashboard.";
 
-  $("#vacioBarras").textContent = hayDatos ? "" : mensaje;
-  $("#vacioLinea").textContent = hayDatos ? "" : mensaje;
-  $("#graficaBarras").classList.toggle("oculto", !hayDatos);
-  $("#graficaLinea").classList.toggle("oculto", !hayDatos);
+  $("#vacioBarras").textContent = errorPrendas ? mensajeErrorPrendas : hayDatos ? "" : mensaje;
+  $("#vacioLinea").textContent = errorPrendas ? mensajeErrorPrendas : hayDatos ? "" : mensaje;
+  $("#graficaBarras").classList.toggle("oculto", errorPrendas || !hayDatos);
+  $("#graficaLinea").classList.toggle("oculto", errorPrendas || !hayDatos);
 
   if (hayDatos) {
     dibujarBarras($("#graficaBarras"), contarPorTipo(lista));
     dibujarLinea($("#graficaLinea"), contarPorFecha(lista));
+  }
+
+  const donantes = errorPrendas ? [] : contarPorParticipante(lista, "donante_id", "donante");
+  $("#vacioTopDonantes").textContent = errorPrendas
+    ? mensajeErrorPrendas
+    : donantes.length ? "" : "No hay donaciones de usuarios para estos filtros.";
+  $("#graficaTopDonantes").classList.toggle("oculto", errorPrendas || !donantes.length);
+  if (donantes.length) {
+    dibujarBarras($("#graficaTopDonantes"), donantes, "Top 5 personas que más donan");
+  }
+
+  const mensajeErrorReservas = "No se pudieron cargar las reservas. Intenta actualizar el dashboard.";
+  const conteoPrendas = reservas ? contarReservasPorPrenda(reservas) : [];
+  const reservadores = reservas
+    ? contarPorParticipante(reservas, "usuario_id", "usuario")
+    : [];
+  $("#vacioReservasPrenda").textContent = reservas
+    ? conteoPrendas.length ? "" : "No hay reservas para estos filtros."
+    : mensajeErrorReservas;
+  $("#graficaReservasPrenda").classList.toggle("oculto", !reservas || !conteoPrendas.length);
+  if (conteoPrendas.length) {
+    dibujarBarras($("#graficaReservasPrenda"), conteoPrendas, "Reservas por tipo y talla de prenda");
+  }
+
+  $("#vacioTopReservadores").textContent = reservas
+    ? reservadores.length ? "" : "No hay reservas de usuarios para estos filtros."
+    : mensajeErrorReservas;
+  $("#graficaTopReservadores").classList.toggle("oculto", !reservas || !reservadores.length);
+  if (reservadores.length) {
+    dibujarBarras($("#graficaTopReservadores"), reservadores, "Top 5 personas que más reservan");
   }
 }

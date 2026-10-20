@@ -2,8 +2,8 @@
     reservas.js — Vista de reservas del usuario en sesión o del admin.
    ========================================================= */
 
-// Renderiza las reservas visibles para el usuario en sesión, ordenadas por
-// fecha de entrega más próxima primero. Si almacén ya marcó la prenda
+// Renderiza las reservas visibles para el usuario en sesión, con las citas
+// asignadas más próximas primero. Si almacén ya marcó la prenda
 // como "entregada" (ver dashboard.js/almacen.js), se muestra un chip
 // en vez del botón Cancelar: ya no tiene sentido cancelar algo que el
 // usuario ya recogió físicamente. El admin puede ver las reservas de todos;
@@ -27,8 +27,7 @@ async function pintarReservas() {
   data.forEach(r => {
     const p = r.prenda;
     const entregada = p && p.estado === "entregado";
-    const fecha = new Date(r.fecha_entrega + "T00:00:00")
-      .toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
+    const fecha = formatearCitaReserva(r);
     const li = document.createElement("li");
     li.className = "reserva";
     li.innerHTML = `
@@ -50,7 +49,16 @@ async function pintarReservas() {
     li.querySelector("h2").textContent = `${p ? p.tipo : "Prenda"} · Talla ${p ? p.talla : "—"}`;
     const usuario = sesion.rol === "admin" && r.usuario ? `Reservó: ${r.usuario.nombre}. ` : "";
     li.querySelector(".nota").textContent = usuario + (p && p.defectos ? "Defectos: " + p.defectos : "Sin defectos");
-    li.querySelector(".entrega b").textContent = fecha;
+    if (sesion.rol === "admin") {
+      const ubicacion = document.createElement("p");
+      ubicacion.className = "nota";
+      ubicacion.textContent = `Ubicación: ${p && p.ubicacion ? p.ubicacion : "Sin asignar"}`;
+      li.querySelector(".mr").append(ubicacion);
+    }
+    li.querySelector(".entrega b").textContent = fecha || "Pendiente de asignación";
+    if (sesion.rol === "admin" && !entregada) {
+      li.querySelector(".entrega").append(crearFormularioCita(r));
+    }
     if (!entregada) {
       const botonEntrega = li.querySelector(".btn-entregar");
       if (botonEntrega) {
@@ -62,6 +70,78 @@ async function pintarReservas() {
     }
     ul.append(li);
   });
+}
+
+function formatearCitaReserva(reserva) {
+  if (!reserva.fecha_entrega) return "";
+  const fecha = new Date(reserva.fecha_entrega + "T12:00:00Z")
+    .toLocaleDateString("es-CO", {
+      timeZone: "America/Bogota",
+      day: "2-digit",
+      month: "long",
+      year: "numeric"
+    });
+  const hora = reserva.hora_entrega ? reserva.hora_entrega.slice(0, 5) : null;
+  return hora ? `${fecha} · ${hora}` : fecha;
+}
+
+function fechaActualColombia() {
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+  const valores = Object.fromEntries(partes.map(parte => [parte.type, parte.value]));
+  return `${valores.year}-${valores.month}-${valores.day}`;
+}
+
+function crearFormularioCita(reserva) {
+  const formulario = document.createElement("form");
+  formulario.className = "formulario-cita";
+
+  const fechaLabel = document.createElement("label");
+  fechaLabel.textContent = "Fecha";
+  const fecha = document.createElement("input");
+  fecha.type = "date";
+  fecha.required = true;
+  fecha.min = fechaActualColombia();
+  fecha.value = reserva.fecha_entrega || "";
+  fechaLabel.append(fecha);
+
+  const horaLabel = document.createElement("label");
+  horaLabel.textContent = "Hora (Colombia)";
+  const hora = document.createElement("input");
+  hora.type = "time";
+  hora.required = true;
+  hora.step = 60;
+  hora.value = reserva.hora_entrega ? reserva.hora_entrega.slice(0, 5) : "";
+  horaLabel.append(hora);
+
+  const guardar = document.createElement("button");
+  guardar.type = "submit";
+  guardar.className = "btn-sec";
+  guardar.textContent = reserva.fecha_entrega ? "Actualizar cita" : "Asignar cita";
+
+  formulario.append(fechaLabel, horaLabel, guardar);
+  formulario.addEventListener("submit", async e => {
+    e.preventDefault();
+    if (!fecha.value || !hora.value) return;
+    guardar.disabled = true;
+    const { error } = await supabaseClient.rpc("asignar_fecha_reserva", {
+      p_reserva_id: reserva.id,
+      p_fecha_entrega: fecha.value,
+      p_hora_entrega: hora.value
+    });
+    guardar.disabled = false;
+    if (error) {
+      alert("No se pudo guardar la cita: " + error.message);
+      return;
+    }
+    await pintarReservas();
+  });
+
+  return formulario;
 }
 
 // Cancela una reserva vía el RPC cancelar_reserva, que de forma

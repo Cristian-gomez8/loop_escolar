@@ -1,20 +1,77 @@
 /* =========================================================
-   almacen.js — Aprobación de donaciones (rol "almacen"/"admin").
-   Lista las prendas en estado "pendiente" (recién donadas) y
-   permite aceptarlas (pasan a "disponible" y aparecen en el
-   catálogo) o rechazarlas (pasan a "rechazada": se conservan
-   para trazabilidad, pero nunca aparecen en el catálogo).
-
-   También pinta la grilla "Reservas realizadas" (misma tabla que
-   la del dashboard, ver construirFilaReserva en dashboard.js) para
-   que almacén marque cada reserva como "entregada" al hacer la
-   entrega física, sin tener que ir hasta el dashboard.
+   almacen.js — Inventario y aprobación de donaciones
+   (rol "almacen"/"admin"). Permite registrar dónde están las
+   prendas disponibles o reservadas, y aceptar o rechazar las
+   donaciones pendientes.
    ========================================================= */
 
 // Renderiza las prendas pendientes de revisión, con la foto (si tiene),
 // tipo, talla, defectos declarados y quién la donó.
 llenar($("#editarTipo"), TIPOS);
 llenar($("#editarTalla"), TALLAS);
+
+async function pintarInventario() {
+  const { data, error } = await supabaseClient
+    .from("prendas")
+    .select("id,tipo,talla,estado,ubicacion")
+    .in("estado", ["disponible", "reservada"])
+    .order("tipo", { ascending: true })
+    .order("talla", { ascending: true });
+  if (error) {
+    console.error(error);
+    $("#tablaInventario").classList.add("oculto");
+    $("#vacioInventario").textContent = "No se pudo cargar el inventario: " + error.message;
+    return;
+  }
+
+  const tabla = $("#tablaInventario");
+  const cuerpo = tabla.querySelector("tbody");
+  cuerpo.innerHTML = "";
+  $("#vacioInventario").textContent = data.length ? "" : "No hay prendas disponibles o reservadas.";
+  tabla.classList.toggle("oculto", !data.length);
+
+  data.forEach(prenda => {
+    const fila = document.createElement("tr");
+    fila.innerHTML = "<td></td><td></td><td></td><td></td><td></td>";
+    const [cTipo, cTalla, cEstado, cUbicacion, cAcciones] = fila.querySelectorAll("td");
+    cTipo.textContent = prenda.tipo;
+    cTalla.textContent = prenda.talla;
+    cEstado.textContent = prenda.estado === "reservada" ? "Reservada" : "Disponible";
+
+    const entrada = document.createElement("input");
+    entrada.type = "text";
+    entrada.maxLength = 100;
+    entrada.value = prenda.ubicacion || "";
+    entrada.placeholder = "Ej. Estante A, nivel 2";
+    entrada.setAttribute("aria-label", `Ubicación de ${prenda.tipo}, talla ${prenda.talla}`);
+    cUbicacion.append(entrada);
+
+    const botonGuardar = document.createElement("button");
+    botonGuardar.type = "button";
+    botonGuardar.className = "btn-sec";
+    botonGuardar.textContent = "Guardar";
+    botonGuardar.onclick = async () => {
+      botonGuardar.disabled = true;
+      const { data: actualizadas, error: errorActualizacion } = await supabaseClient
+        .from("prendas")
+        .update({ ubicacion: entrada.value.trim() || null })
+        .eq("id", prenda.id)
+        .in("estado", ["disponible", "reservada"])
+        .select("id");
+      botonGuardar.disabled = false;
+      if (errorActualizacion) {
+        alert("No se pudo guardar la ubicación: " + errorActualizacion.message);
+        return;
+      }
+      if (!actualizadas.length) {
+        alert("La prenda ya no está disponible ni reservada. Actualiza el inventario.");
+      }
+      await pintarInventario();
+    };
+    cAcciones.append(botonGuardar);
+    cuerpo.append(fila);
+  });
+}
 
 let imagenEdicion = null;
 let donacionEdicion = null;
@@ -191,4 +248,3 @@ async function rechazarPrenda(p) {
 }
 
 // Fin de la gestión de donaciones pendientes.
-

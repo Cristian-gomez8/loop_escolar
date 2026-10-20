@@ -34,18 +34,6 @@
           <label for="nombre">Nombre completo</label>
           <input id="nombre" maxlength="100" autocomplete="name" />
         </div>
-        <div id="campoTipoUsuario" class="oculto">
-          <label for="tipoUsuario">Tipo de usuario</label>
-          <select id="tipoUsuario">
-            <option value="">Selecciona una opción</option>
-            <option value="estudiante">Estudiante</option>
-            <option value="padre_familia">Padre de familia</option>
-          </select>
-          <div id="campoNombreEstudiante" class="oculto">
-            <label for="nombreEstudiante">Nombre del estudiante del que eres padre de familia</label>
-            <input id="nombreEstudiante" maxlength="150" autocomplete="off" />
-          </div>
-        </div>
         <label for="email">Correo electrónico</label>
         <input id="email" type="email" maxlength="255" required autocomplete="email" />
        <label for="password">Contraseña</label>
@@ -86,8 +74,8 @@
         <button data-vista="donacion">Donación</button>
         <button data-vista="reservas">Reservas</button>
         <!-- Ocultos por defecto: navegacion.js los muestra solo a
-             "almacen"/"admin" (donaciones) y "admin" (usuarios). -->
-        <button data-vista="almacen" class="oculto">Donaciones pendientes</button>
+             "almacen"/"admin" (almacén) y "admin" (usuarios). -->
+        <button data-vista="almacen" class="oculto">Almacén</button>
         <button data-vista="dashboard" class="oculto">Dashboard</button>
         <button data-vista="usuarios" class="oculto">Usuarios</button>
         <span id="usuarioActual" class="usuario-actual"></span>
@@ -167,15 +155,17 @@
     <!-- Reservas: el usuario ve las propias; el admin ve todas. -->
     <section id="vistaReservas" class="oculto">
       <h1>Reservas</h1>
-      <p class="sub">Consulta las reservas y la fecha en que pueden recogerse.</p>
+      <p class="sub">El administrador confirmará la fecha y hora exactas de entrega después de cada reserva.</p>
       <ul class="lista" id="listaReservas"></ul>
       <p class="nota" id="vacioReservas"></p>
     </section>
 
-    <!-- Donaciones pendientes: solo roles "almacen"/"admin". Permite
-         aceptar (pasa a "disponible") o rechazar cada donación. -->
+    <!-- Almacén: ubicación de prendas y revisión de donaciones para
+         los roles "almacen"/"admin". -->
     <section id="vistaAlmacen" class="oculto">
-      <h1>Donaciones pendientes</h1>
+      <h1>Almacén</h1>
+      <p class="sub">Registra dónde se encuentran las prendas disponibles o reservadas y revisa las donaciones pendientes.</p>
+      <h2 style="margin-top:1.5rem">Donaciones pendientes</h2>
       <p class="sub">Revisa las prendas donadas por la comunidad antes de que aparezcan en el catálogo.</p>
       <div class="tabla-contenedor">
         <table class="tabla-prendas tabla-donaciones" id="tablaPendientes">
@@ -193,6 +183,23 @@
         </table>
       </div>
       <p class="nota" id="vacioPendientes"></p>
+      <h2 style="margin-top:1.5rem">Ubicación de prendas</h2>
+      <p class="sub">Actualiza la ubicación física para que el equipo pueda encontrar cada prenda.</p>
+      <div class="tabla-contenedor">
+        <table class="tabla-prendas" id="tablaInventario">
+          <thead>
+            <tr>
+              <th>Tipo de prenda</th>
+              <th>Talla</th>
+              <th>Estado</th>
+              <th>Ubicación</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="nota" id="vacioInventario"></p>
     </section>
 
     <dialog id="dialogEditarDonacion" aria-labelledby="tituloEditarDonacion">
@@ -216,11 +223,10 @@
       </form>
     </dialog>
 
-    <!-- Dashboard: estadísticas de donaciones, solo roles "almacen"/"admin".
-         Los filtros aplican por igual a las dos gráficas (ver dashboard.js). -->
+    <!-- Dashboard: estadísticas para roles "almacen"/"admin". -->
     <section id="vistaDashboard" class="oculto">
       <h1>Dashboard</h1>
-      <p class="sub">Filtra las donaciones recibidas y revisa las prendas más ofertadas y su evolución en el tiempo.</p>
+      <p class="sub">Filtra por tipo y talla para revisar donaciones, prendas reservadas y participación de la comunidad.</p>
       <div class="filtros">
         <select id="dashTipo" aria-label="Filtrar por tipo"></select>
         <select id="dashTalla" aria-label="Filtrar por talla"></select>
@@ -238,6 +244,25 @@
         <p class="nota" id="vacioLinea"></p>
         </div>
       </section>
+      <section class="dashboard-bloque dashboard-graficas">
+        <h2 class="dashboard-titulo">Reservas y participación</h2>
+        <div class="tarjeta tarjeta-grafica" style="margin-top:1.25rem">
+          <h2 style="margin:0 0 .25rem;font-size:1.05rem">Reservas por tipo y talla de prenda</h2>
+            <p class="nota">Cantidad de reservas registradas, agrupadas por tipo y talla.</p>
+            <div id="graficaReservasPrenda"></div>
+          <p class="nota" id="vacioReservasPrenda"></p>
+        </div>
+        <div class="tarjeta tarjeta-grafica" style="margin-top:1.25rem">
+          <h2 style="margin:0 0 .25rem;font-size:1.05rem">Top 5 personas que más donan</h2>
+          <div id="graficaTopDonantes"></div>
+          <p class="nota" id="vacioTopDonantes"></p>
+        </div>
+        <div class="tarjeta tarjeta-grafica" style="margin-top:1.25rem">
+          <h2 style="margin:0 0 .25rem;font-size:1.05rem">Top 5 personas que más reservan</h2>
+          <div id="graficaTopReservadores"></div>
+          <p class="nota" id="vacioTopReservadores"></p>
+        </div>
+      </section>
 
     </section>
 
@@ -248,16 +273,6 @@
       <form class="tarjeta" id="formUsuarioNuevo" style="margin-top:1.25rem">
         <label for="uNombre">Nombre completo</label>
         <input id="uNombre" maxlength="100" />
-        <label for="uTipoUsuario">Tipo de usuario</label>
-        <select id="uTipoUsuario" required>
-          <option value="">Selecciona una opción</option>
-          <option value="estudiante">Estudiante</option>
-          <option value="padre_familia">Padre de familia</option>
-        </select>
-        <div id="uCampoNombreEstudiante" class="oculto">
-          <label for="uNombreEstudiante">Nombre del estudiante del que es padre de familia</label>
-          <input id="uNombreEstudiante" maxlength="150" autocomplete="off" />
-        </div>
         <label for="uEmail">Correo electrónico</label>
         <input id="uEmail" type="email" maxlength="255" />
         <label for="uPass">Contraseña</label>

@@ -52,7 +52,6 @@ function configurarToggleClave(input, button) {
 }
 
 configurarToggleClave($("#uPass"), $("#toggleUPass"));
-configurarTipoPersona($("#uTipoUsuario"), $("#uCampoNombreEstudiante"), $("#uNombreEstudiante"));
 
 function renderizarListaUsuarios() {
   const ul = $("#listaUsuarios");
@@ -311,21 +310,12 @@ $("#formUsuarioNuevo").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("#usuarioError").classList.add("oculto");
   const nombre = $("#uNombre").value.trim();
-  const tipoUsuario = $("#uTipoUsuario").value;
-  const nombreEstudiante = $("#uNombreEstudiante").value.trim();
   const email  = $("#uEmail").value.trim().toLowerCase();
   const pass   = $("#uPass").value;
   const rol    = $("#uRol").value;
 
   if (!nombre || !email || !pass) {
     $("#usuarioError").textContent = "Completa nombre, correo y contraseña.";
-    $("#usuarioError").classList.remove("oculto");
-    return;
-  }
-  if (!tipoUsuario || (tipoUsuario === "padre_familia" && !nombreEstudiante)) {
-    $("#usuarioError").textContent = tipoUsuario === "padre_familia"
-      ? "Escribe el nombre del estudiante a cargo."
-      : "Selecciona el tipo de usuario.";
     $("#usuarioError").classList.remove("oculto");
     return;
   }
@@ -340,9 +330,7 @@ $("#formUsuarioNuevo").addEventListener("submit", async (e) => {
     password: pass,
     options: {
       data: {
-        nombre,
-        tipo_usuario: tipoUsuario,
-        nombre_estudiante: tipoUsuario === "padre_familia" ? nombreEstudiante : null
+        nombre
       }
     }
   });

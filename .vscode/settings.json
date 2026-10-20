@@ -1,3 +1,11 @@
 {
-  "deno.enablePaths": ["${workspaceFolder}/supabase/functions"]
+  "deno.enablePaths": [
+    "${workspaceFolder}/supabase/functions"
+  ],
+  "chat.tools.terminal.autoApprove": {
+    "/^node --check \\.\\\\js\\\\almacen\\.js; if \\(\\$\\?\\) \\{ node --check \\.\\\\js\\\\reservas\\.js \\}; if \\(\\$\\?\\) \\{ node --check \\.\\\\js\\\\navegacion\\.js \\}$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
 }

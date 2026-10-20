@@ -22,7 +22,7 @@
 body {
   margin: 0;
   background-color: var(--fondo);
-  background-image: url("../fondo.png");
+  background-image: url("../fondo.jpeg");
   background-position: center;
   background-size: cover;
   background-attachment: fixed;
@@ -657,6 +657,17 @@ input:focus, select:focus, textarea:focus {
   font-size: 0.7rem;
 }
 .entrega b { display: block; color: var(--verde-osc); }
+.formulario-cita {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(100px, 1fr));
+  gap: 0.4rem;
+  min-width: 240px;
+  margin-top: 0.5rem;
+  text-align: left;
+}
+.formulario-cita label { color: var(--gris); font-size: 0.75rem; }
+.formulario-cita input { margin: 0.15rem 0 0; padding: 0.4rem; }
+.formulario-cita button { grid-column: 1 / -1; width: 100%; margin: 0; }
 .btn-sec {
   /* Acción secundaria, con menos énfasis que .btn. */
   border: 1px solid var(--borde);
@@ -861,8 +872,16 @@ input:focus, select:focus, textarea:focus {
 }
 .dashboard-titulo {
   margin: 0;
-  color: var(--verde-osc);
+  color: #fff;
   font-size: 1.2rem;
+}
+
+/* Mantiene legibles los títulos sobre el fondo fotográfico de las vistas.
+   Los títulos dentro de tarjetas y diálogos blancos conservan su color. */
+#app main > section > h1,
+#app main > section > h2,
+#app main > section > .sub {
+  color: #fff;
 }
 
 /* Más espacio vertical para revisar registros sin modificar el ancho. */

@@ -12,9 +12,7 @@ function pintarModo() {
   $("#tabLogin").classList.toggle("activo", modo === "login");
   $("#tabSignup").classList.toggle("activo", modo === "signup");
   $("#campoNombre").classList.toggle("oculto", modo !== "signup");
-  $("#campoTipoUsuario").classList.toggle("oculto", modo !== "signup");
   $("#nombre").required = modo === "signup";
-  $("#tipoUsuario").required = modo === "signup";
   $("#btnAuth").textContent = modo === "login" ? "Ingresar" : "Crear cuenta";
   mensaje(null, null);
 }
@@ -29,8 +27,6 @@ function configurarTipoPersona(select, campoEstudiante, nombreEstudiante) {
   select.addEventListener("change", actualizar);
   actualizar();
 }
-
-configurarTipoPersona($("#tipoUsuario"), $("#campoNombreEstudiante"), $("#nombreEstudiante"));
 
 // Muestra un mensaje de error o de éxito debajo del formulario de auth.
 function mensaje(error, ok) {
@@ -71,8 +67,6 @@ async function bloquearSiNoAprobado(perfil) {
 $("#formAuth").addEventListener("submit", async (e) => {
   e.preventDefault();
   const nombre = $("#nombre").value.trim();
-  const tipoUsuario = $("#tipoUsuario").value;
-  const nombreEstudiante = $("#nombreEstudiante").value.trim();
   const email  = $("#email").value.trim().toLowerCase();
   const pass   = $("#password").value;
 
@@ -83,18 +77,12 @@ $("#formAuth").addEventListener("submit", async (e) => {
   try {
     if (modo === "signup") {
       if (!nombre) return mensaje("Escribe tu nombre completo.");
-      if (!tipoUsuario) return mensaje("Selecciona si eres estudiante o padre de familia.");
-      if (tipoUsuario === "padre_familia" && !nombreEstudiante) {
-        return mensaje("Escribe el nombre del estudiante a cargo.");
-      }
       const { data, error } = await supabaseClient.auth.signUp({
         email,
         password: pass,
         options: {
           data: {
-            nombre,
-            tipo_usuario: tipoUsuario,
-            nombre_estudiante: tipoUsuario === "padre_familia" ? nombreEstudiante : null
+            nombre
           }
         }
       });

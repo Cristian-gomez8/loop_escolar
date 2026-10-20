@@ -153,18 +153,12 @@ $("#btnNuevaPrenda").onclick = () => {
   $("#dTipo").focus();
 };
 
-// Reserva una prenda disponible para el usuario en sesión: llama al
-// RPC reservar_prenda, que de forma atómica pasa la prenda a
-// "reservada" y crea la reserva con fecha de entrega una semana
-// después de hoy (evita que dos personas reserven la misma prenda
-// a la vez, algo que un simple update+insert desde el cliente no podría).
+// Reserva una prenda disponible para el usuario en sesión: el RPC
+// pasa la prenda a "reservada" y crea la reserva sin cita de entrega;
+// el administrador asignará la fecha y hora posteriormente.
 async function reservar(p) {
-  const entrega = new Date();
-  entrega.setDate(entrega.getDate() + 7);
-  const fecha_entrega = entrega.toISOString().slice(0, 10);
-
   const { error } = await supabaseClient.rpc("reservar_prenda", {
-    p_prenda_id: p.id, p_fecha_entrega: fecha_entrega
+    p_prenda_id: p.id, p_fecha_entrega: null
   });
   if (error) {
     $("#detalleError").textContent = "No se pudo reservar: " + error.message;
