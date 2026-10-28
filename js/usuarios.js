@@ -83,7 +83,7 @@ function renderizarListaUsuarios() {
         <span class="estado-aprobacion"></span>
         <select aria-label="Rol del usuario"></select>
         <button class="btn-sec btn-editar-usuario" type="button">Editar perfil</button>
-        <button class="btn-peligro" type="button">Eliminar</button>
+        <button class="btn-peligro btn-eliminar-usuario" type="button">Eliminar</button>
         <div class="acciones-aprobacion"></div>
         <div class="edicion-usuario oculto">
           <label>Nombre completo</label>
@@ -117,10 +117,14 @@ function renderizarListaUsuarios() {
         : `${u.email} · ${u.tipo_usuario === "estudiante" ? "Estudiante" : "Tipo sin especificar"}`;
       const estado = u.estado_aprobacion || "pendiente";
       const etiquetaEstado = li.querySelector(".estado-aprobacion");
+      const botonEditar = li.querySelector(".btn-editar-usuario");
+      const botonEliminar = li.querySelector(".btn-eliminar-usuario");
       etiquetaEstado.textContent = estado === "aprobado"
         ? "Aprobado"
         : estado === "rechazado" ? "Rechazado" : "Pendiente de aprobación";
       etiquetaEstado.classList.add(`estado-${estado}`);
+      botonEditar.classList.toggle("oculto", estado === "pendiente");
+      botonEliminar.classList.toggle("oculto", estado === "pendiente");
       if (estado === "pendiente") {
         const acciones = li.querySelector(".acciones-aprobacion");
         const aprobar = document.createElement("button");
@@ -151,11 +155,11 @@ function renderizarListaUsuarios() {
       configurarTipoPersona(tipoUsuario, campoNombreEstudiante, nombreEstudiante);
       email.value = u.email || "";
       configurarToggleClave(clave, li.querySelector(".btn-ver-clave"));
-      li.querySelector(".btn-editar-usuario").onclick = () => panel.classList.toggle("oculto");
+      botonEditar.onclick = () => panel.classList.toggle("oculto");
       li.querySelector(".btn-cancelar-edicion").onclick = () => panel.classList.add("oculto");
       li.querySelector(".acciones-edicion .btn").onclick = () =>
         guardarPerfilUsuario(u, nombre.value, email.value, tipoUsuario.value, nombreEstudiante.value, clave.value, li.querySelector(".error-edicion"));
-      li.querySelector(".btn-peligro").onclick = () => eliminarUsuario(u);
+      botonEliminar.onclick = () => eliminarUsuario(u);
       ul.append(li);
     });
 }
